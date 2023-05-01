@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css" />
+    
+    <title>Metafluence Launcher</title>
+</head>
+<body>
+    <div class="titlebar"></div>
+
+    <div class="logo">
+        <img src="./Launcher/mf_logo.png" alt="" >
+        <div class="window-buttons">
+            <button id="minimize-button"></button>
+            <button id="close-button"></button>
+        </div>
+    </div>
+
+    <div class="link_bar">
+        <ul class="nav-list">
+            <li><a href="https://metafluence.com/" target="_blank">WEBSITE</a></li>
+            <li><a href="https://app.metafluence.com/citym/register" target="_blank">SIGN UP</a></li>
+            <li><a href="https://whitepaper.metafluence.com/" target="_blank">WHITEPAPER</a></li>
+            <li><a href="mailto:contact@metafluence.com" target="_blank">CONTACT US</a></li>
+        </ul>
+        <ul class="socials">
+            <li><a href="https://www.linkedin.com/company/metafluence/" target="_blank"><img src="./Launcher/Socials/LinkedIn.png"></a></li>
+            <li><a href="https://twitter.com/metafluence" target="_blank"><img src="./Launcher/Socials/Twitter.png"></a></li>
+            <li><a href="https://instagram.com/metafluence.network" target="_blank"><img src="./Launcher/Socials/Instagram.png"></a></li>
+            <li><a href="https://www.facebook.com/metafluence" target="_blank"><img src="./Launcher/Socials/Facebook.png"></a></li>
+        </ul>
+    </div>
+
+    <div class="news">
+        <div class="carousel" data-carousel>
+            <img class="slide" src="./Launcher/Feed/Content/1.jpg" data-active>
+            <img class="slide" src="./Launcher/Feed/Content/2.png">
+            <img class="slide" src="./Launcher/Feed/Content/3.jpg">
+            <img class="slide" src="./Launcher/Feed/Content/4.png">
+        </div>
+        <div class="news_text">
+            <span class="latest">Latest News</span>
+            <span id="header">Influencer-driven Metaverse</span>
+            <span id="info">Become an Early Resident in Metafluence City by acquiring a Land Plot, 
+                and monetize your virtual presence through hosting immersive events, 
+                showcasing digital art, social shopping, and many more!
+            </span>
+
+            <div class="selection-boxes" data-selection>
+                <div class="sel_box" id="sld-first" data-active></div>
+                <div class="sel_box" id="sld-second"></div>
+                <div class="sel_box" id="sld-third"></div>
+                <div class="sel_box" id="sld-fourth"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="up_to_date update_panel">
+        <span>Version is up to date. You can enter the Metafluence now.</span>
+        <div class="button_version">
+            <div class="button">
+                <button id="enter">LAUNCH</button>
+                <button class="version version-selector"></button>
+                <div class="custom-select">
+                    <ul>
+                        <li data-value="update" class="list-item">Check for updates</li>
+                        <li data-value="uninstall" class="list-item">Uninstall the app</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="version_text">
+                <span>public v1.0.4.1</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="update_available update_panel">
+        <span>New version of the app is available. Update to proceed.</span>
+        <div class="button_version">
+            <div class="button">
+                <button id="update">UPDATE</button>
+                <button class="version version-selector"></button>
+                <div class="custom-select">
+                    <ul>
+                        <li data-value="update" class="list-item">Check for updates</li>
+                        <li data-value="uninstall" class="list-item">Uninstall the app</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="version_text">
+                <span>public v1.0.4.1</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="check_update update_panel" data-active>
+        <div class="bar_part">
+            <span>Checking for updates...</span>
+            <div id="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+        </div>
+        <div class="button_version">
+            <div class="button">
+                <button class="enter-disabled">LAUNCH</button>
+                <button class="version"></button>
+            </div>
+            <div class="version_text">
+                <span>public v1.0.4.1</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="install-first update_panel">
+        <div class="bar_part">
+            <span>App is not installed. Install the app to enter the Metafluence.</span>
+            <div id="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+        </div>
+        <div class="button_version">
+            <div class="button">
+                <button id="install">INSTALL</button>
+                <button class="version version-selector"></button>
+                <!-- <div class="custom-select">
+                    <ul>
+                        <li data-value="update" class="list-item">Check for updates</li>
+                        <li data-value="uninstall" class="list-item">Uninstall the app</li>
+                    </ul>
+                </div> -->
+            </div>
+            <div class="version_text">
+                <span>public v1.0.4.1</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="install-started update_panel">
+        <div class="bar_part">
+            <span id="phase">Downloading...</span>
+            <div id="progress-container">
+                <div id="download-bar"></div>
+            </div>
+        </div>
+        <div class="button_version">
+            <div class="button">
+                <button class="enter-disabled">LAUNCH</button>
+                <button class="version"></button>
+            </div>
+            <div class="version_text">
+                <span>public v1.0.4.1</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings">
+        <div class="settings-img"></div>
+        <p>SETTINGS</p>
+    </div>
+
+    <div class="footer">
+        <span>© Keepface Global Inc. 2023. All rights are reserved.</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="./script.js"></script>
+</body>
+</html>

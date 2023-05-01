@@ -1,0 +1,198 @@
+@font-face {
+  font-family: "Gilroy-bold";
+  src: url("./Launcher/Gilroy/Gilroy-Bold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Gilroy-medium";
+  src: url("./Launcher/Gilroy/Gilroy-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Gilroy-semibold";
+  src: url("./Launcher/Gilroy/Gilroy-Semibold.ttf") format("truetype");
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+li {
+  list-style: none;
+}
+
+body {
+  background-color: #190833;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
+.heading {
+  padding-top: 18.43px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.heading span {
+  color: white;
+  font-family: "Gilroy-bold";
+  font-size: 18.22px;
+}
+
+.version-settings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 46px;
+}
+.version-settings span {
+  color: white;
+  font-size: 18.22px;
+  font-family: "Gilroy-medium";
+}
+.version-settings .button-version {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
+}
+.version-settings .button-version .button {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+.version-settings .button-version .button #enter {
+  text-align: center;
+  background: url("./Launcher/Buttons/state=Default.png") no-repeat;
+  background-size: 100% 100%;
+  border: none;
+  color: white;
+  font-size: 24.79px;
+  font-family: "Gilroy-bold";
+  width: 116.84px;
+  height: 46.9px;
+  padding: 7.15px 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+}
+.version-settings .button-version .button .version {
+  background: url("./Launcher/Buttons/state=Default-1.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 26.54px;
+  height: 46.9px;
+  cursor: pointer;
+  z-index: 2;
+}
+.version-settings .button-version .button .version:hover {
+  background: url("./Launcher/Buttons/state=Hover.png") no-repeat;
+  background-size: cover;
+}
+.version-settings .button-version .button .version:active {
+  background: url("./Launcher/Buttons/state=pressed-1.png") no-repeat;
+  background-size: cover;
+}
+.version-settings .button-version .button .custom-select {
+  position: absolute;
+  width: 100%;
+  top: 73.5%;
+  left: 0;
+  border: 1px solid #190833;
+  background-color: #33195C;
+  border-radius: 0px 0px 15px 15px;
+  display: none;
+}
+.version-settings .button-version .button .custom-select ul {
+  padding-top: 11.63px;
+  list-style: none;
+  width: 100%;
+}
+.version-settings .button-version .button .custom-select ul li {
+  display: flex;
+  color: white;
+  justify-content: flex-end;
+  font-size: 12px;
+  font-family: "Gilroy-medium";
+  cursor: pointer;
+  padding: 5px 10.98px 5px 0;
+}
+.version-settings .button-version .button .custom-select ul li:first-child {
+  border-bottom: 1px solid #190833;
+}
+.version-settings .button-version .button .custom-select ul li:hover {
+  color: #D52490;
+}
+
+.version-text {
+  padding-top: 34.25px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.version-text span {
+  color: #767676;
+  font-family: "Gilroy-medium";
+  font-size: 16.19px;
+}
+
+.updater-button {
+  padding-top: 2px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.updater-button button {
+  color: #D52490;
+  font-family: "Gilroy-medium";
+  font-size: 8.8px;
+  background: none;
+  border: none;
+  text-decoration: none;
+}
+.updater-button button:disabled {
+  pointer-events: none;
+}
+.updater-button button:hover {
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding-top: 12.31px;
+  padding-right: 13.95px;
+}
+.close-button #close {
+  background: url("./Launcher/CloseMinimize/close_default.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 22.12px;
+  height: 22.12px;
+}
+.close-button #close:hover {
+  background: url("./Launcher/CloseMinimize/close_hover_press.png") no-repeat;
+  background-size: cover;
+  cursor: pointer;
+}/*# sourceMappingURL=settings.css.map */

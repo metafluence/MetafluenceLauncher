@@ -1,0 +1,668 @@
+@font-face {
+  font-family: "Gilroy-bold";
+  src: url("./Launcher/Gilroy/Gilroy-Bold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Gilroy-medium";
+  src: url("./Launcher/Gilroy/Gilroy-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Gilroy-semibold";
+  src: url("./Launcher/Gilroy/Gilroy-Semibold.ttf") format("truetype");
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+li {
+  list-style: none;
+}
+
+body {
+  background-color: #190833;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
+.titlebar {
+  width: 100%;
+  height: 32px;
+  background-color: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  -webkit-app-region: drag;
+}
+
+.logo {
+  width: 50%;
+  height: 50%;
+}
+.logo img {
+  width: 100%;
+  height: 100%;
+  -webkit-user-drag: none;
+}
+.logo .window-buttons {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  top: 0;
+  right: 0;
+  padding-right: 17.52px;
+  padding-top: 14.58px;
+  gap: 7.87px;
+  -webkit-app-region: no-drag;
+}
+.logo .window-buttons #close-button {
+  background: url("./Launcher/CloseMinimize/close_default.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 26px;
+  height: 26px;
+}
+.logo .window-buttons #close-button:hover {
+  background: url("./Launcher/CloseMinimize/close_hover_press.png") no-repeat;
+  background-size: cover;
+  cursor: pointer;
+}
+.logo .window-buttons #minimize-button {
+  background: url("./Launcher/CloseMinimize/minimize_default.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 26px;
+  height: 26px;
+}
+.logo .window-buttons #minimize-button:hover {
+  background: url("./Launcher/CloseMinimize/minimize_hover_press.png") no-repeat;
+  background-size: cover;
+  cursor: pointer;
+}
+
+.link_bar {
+  background-color: #5D2A93;
+  padding: 10px 17px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.link_bar .nav-list {
+  display: flex;
+  gap: 18px;
+  color: white;
+}
+.link_bar .nav-list a {
+  text-decoration: none;
+  color: inherit;
+  font-size: 10.96px;
+  font-family: "Gilroy-bold";
+  font-weight: 600;
+}
+.link_bar .socials {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.link_bar .socials li {
+  display: flex;
+  align-self: center;
+  padding: 0;
+}
+.link_bar .socials li a {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  text-decoration: none;
+}
+.link_bar .socials li a img {
+  width: 100%;
+  height: 100%;
+}
+
+.news {
+  height: 56vh;
+  position: relative;
+}
+.news .carousel {
+  width: 100%;
+  height: 100%;
+}
+.news .carousel .slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-user-drag: none;
+}
+.news .carousel .slide[data-active] {
+  opacity: 1;
+}
+.news .news_text {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 17px;
+  background: url("./Launcher/Feed/text_bg.png") no-repeat;
+  opacity: 1;
+  width: 100%;
+}
+.news .news_text .latest {
+  font-size: 10px;
+  font-family: "Gilroy-medium";
+  color: #817C7C;
+  display: block;
+  padding-top: 10px;
+}
+.news .news_text #header {
+  display: block;
+  text-transform: uppercase;
+  color: white;
+  font-size: 29.73px;
+  font-family: "Gilroy-bold";
+}
+.news .news_text #info {
+  display: inline-block;
+  font-size: 12px;
+  font-family: "Gilroy-medium";
+  color: white;
+  width: 77vw;
+}
+.news .news_text .selection-boxes {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  padding-top: 20px;
+  padding-bottom: 6.89px;
+}
+.news .news_text .selection-boxes .sel_box {
+  display: inline-block;
+  width: 22.72px;
+  height: 9.06px;
+  background: url("./Launcher/Feed/unselected.png") no-repeat;
+  background-size: cover;
+}
+.news .news_text .selection-boxes .sel_box[data-active] {
+  background: url("./Launcher/Feed/selected.png") no-repeat;
+  background-size: cover;
+}
+.news .news_text .selection-boxes .sel_box:hover {
+  cursor: pointer;
+}
+
+.up_to_date {
+  display: none;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 23px 35px 10px 18px;
+}
+.up_to_date span {
+  color: white;
+  font-size: 16.62px;
+  font-family: "Gilroy-medium";
+}
+.up_to_date .button_version {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.up_to_date .button_version .button {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+.up_to_date .button_version .button #enter {
+  text-align: center;
+  background: url("./Launcher/Buttons/state=Default.png") no-repeat;
+  background-size: 100% 100%;
+  border: none;
+  color: white;
+  font-size: 24.79px;
+  font-family: "Gilroy-bold";
+  width: 119px;
+  height: 40px;
+  padding: 7.15px 0px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+}
+.up_to_date .button_version .button #enter:hover {
+  background: url("./Launcher/Buttons/state=Hover1.png") no-repeat;
+  background-size: 100% 100%;
+}
+.up_to_date .button_version .button #enter:active {
+  background: url("./Launcher/Buttons/state=pressed.png") no-repeat;
+  background-size: 100% 100%;
+}
+.up_to_date .button_version .button .version {
+  background: url("./Launcher/Buttons/state=Default-1.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 22.21px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 2;
+}
+.up_to_date .button_version .button .version:hover {
+  background: url("./Launcher/Buttons/state=Hover.png") no-repeat;
+  background-size: cover;
+}
+.up_to_date .button_version .button .version:active {
+  background: url("./Launcher/Buttons/state=pressed-1.png") no-repeat;
+  background-size: cover;
+}
+.up_to_date .button_version .button .custom-select {
+  position: absolute;
+  width: 100%;
+  top: 67%;
+  left: 0;
+  border: 1px solid #190833;
+  background-color: #33195C;
+  border-radius: 0px 0px 15px 15px;
+  display: none;
+}
+.up_to_date .button_version .button .custom-select ul {
+  padding-top: 11.63px;
+  list-style: none;
+}
+.up_to_date .button_version .button .custom-select ul li {
+  display: flex;
+  color: white;
+  justify-content: flex-end;
+  font-size: 12px;
+  font-family: "Gilroy-medium";
+  cursor: pointer;
+  padding: 5px 10.98px 5px 0;
+}
+.up_to_date .button_version .button .custom-select ul li:first-child {
+  border-bottom: 1px solid #190833;
+}
+.up_to_date .button_version .button .custom-select ul li:hover {
+  color: #D52490;
+}
+.up_to_date .button_version .version_text {
+  display: flex;
+  padding-top: 3px;
+}
+.up_to_date .button_version .version_text span {
+  color: white;
+  font-size: 10px;
+  font-family: "Gilroy-medium";
+}
+
+.update_available {
+  display: none;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 23px 35px 10px 18px;
+}
+.update_available span {
+  color: white;
+  font-size: 16.62px;
+  font-family: "Gilroy-medium";
+}
+.update_available .button_version {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.update_available .button_version .button {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+.update_available .button_version .button #update {
+  text-align: center;
+  background: url("./Launcher/Buttons/state=Default.png") no-repeat;
+  background-size: 100% 100%;
+  border: none;
+  color: white;
+  font-size: 24.79px;
+  font-family: "Gilroy-bold";
+  width: 119px;
+  height: 40px;
+  padding: 7.15px 0px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+}
+.update_available .button_version .button #update:active {
+  background: url("./Launcher/Buttons/state=pressed.png") no-repeat;
+  background-size: 100% 100%;
+}
+.update_available .button_version .button .version {
+  background: url("./Launcher/Buttons/state=Default-1.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 22.21px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 2;
+}
+.update_available .button_version .button .version:hover {
+  background: url("./Launcher/Buttons/state=Hover.png") no-repeat;
+  background-size: cover;
+}
+.update_available .button_version .button .version:active {
+  background: url("./Launcher/Buttons/state=pressed-1.png") no-repeat;
+  background-size: cover;
+}
+.update_available .button_version .button .custom-select {
+  position: absolute;
+  width: 100%;
+  top: 67%;
+  left: 0;
+  border: 1px solid #190833;
+  background-color: #33195C;
+  border-radius: 0px 0px 15px 15px;
+  display: none;
+}
+.update_available .button_version .button .custom-select ul {
+  padding-top: 11.63px;
+  list-style: none;
+}
+.update_available .button_version .button .custom-select ul li {
+  display: flex;
+  color: white;
+  justify-content: flex-end;
+  font-size: 12px;
+  font-family: "Gilroy-medium";
+  cursor: pointer;
+  padding: 5px 10.98px 5px 0;
+}
+.update_available .button_version .button .custom-select ul li:first-child {
+  border-bottom: 1px solid #190833;
+}
+.update_available .button_version .button .custom-select ul li:hover {
+  color: #D52490;
+}
+.update_available .button_version .version_text {
+  display: flex;
+  padding-top: 3px;
+}
+.update_available .button_version .version_text span {
+  color: white;
+  font-size: 10px;
+  font-family: "Gilroy-medium";
+}
+
+.check_update {
+  display: none;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 23px 35px 10px 18px;
+}
+.check_update .bar_part {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.check_update .bar_part span {
+  color: white;
+  font-size: 11.84px;
+  font-family: "Gilroy-medium";
+}
+.check_update .bar_part #progress-container {
+  width: 466px;
+  height: 14px;
+  background: url("./Launcher/progressbar_0.png") no-repeat;
+  background-size: cover;
+}
+.check_update .bar_part #progress-container #progress-bar {
+  width: 50%;
+  height: 100%;
+  background: url("./Launcher/progressbar_100.png") no-repeat;
+  background-size: cover;
+}
+.check_update .button_version {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.check_update .button_version .button {
+  display: flex;
+  flex-direction: row;
+}
+.check_update .button_version .button .enter-disabled {
+  text-align: center;
+  background: url("./Launcher/Buttons/state=inactive.png") no-repeat;
+  background-size: 100% 100%;
+  border: none;
+  color: white;
+  font-size: 24.79px;
+  font-family: "Gilroy-bold";
+  width: 119px;
+  height: 40px;
+  padding: 7.15px 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.check_update .button_version .button .version {
+  background: url("./Launcher/Buttons/state=inactive-1.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 22.21px;
+  height: 40px;
+}
+.check_update .button_version .version_text {
+  display: flex;
+  padding-top: 3px;
+}
+.check_update .button_version .version_text span {
+  color: white;
+  font-size: 10px;
+  font-family: "Gilroy-medium";
+}
+
+.install-first {
+  display: none;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 23px 35px 10px 18px;
+}
+.install-first span {
+  color: white;
+  font-size: 16.62px;
+  font-family: "Gilroy-medium";
+}
+.install-first .button_version {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.install-first .button_version .button {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+.install-first .button_version .button #install {
+  text-align: center;
+  background: url("./Launcher/Buttons/state=Default.png") no-repeat;
+  border: none;
+  color: white;
+  font-size: 24.79px;
+  font-family: "Gilroy-bold";
+  width: 119px;
+  height: 40px;
+  padding: 7.15px 0px;
+  cursor: pointer;
+  background-size: 100% 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+}
+.install-first .button_version .button #install:active {
+  background: url("./Launcher/Buttons/state=pressed.png") no-repeat;
+  background-size: 100% 100%;
+}
+.install-first .button_version .button .version {
+  background: url("./Launcher/Buttons/state=inactive-1.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 22.21px;
+  height: 40px;
+  z-index: 2;
+}
+.install-first .button_version .version_text {
+  display: flex;
+  padding-top: 3px;
+}
+.install-first .button_version .version_text span {
+  color: white;
+  font-size: 10px;
+  font-family: "Gilroy-medium";
+}
+
+.install-started {
+  display: none;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 23px 35px 10px 18px;
+}
+.install-started .bar_part {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.install-started .bar_part #phase {
+  color: white;
+  font-size: 11.84px;
+  font-family: "Gilroy-medium";
+}
+.install-started .bar_part #progress-container {
+  width: 466px;
+  height: 14px;
+  background: url("./Launcher/progressbar_0.png") no-repeat;
+  background-size: cover;
+}
+.install-started .bar_part #progress-container #download-bar {
+  width: 0%;
+  height: 100%;
+  background: url("./Launcher/progressbar_100.png") no-repeat;
+  background-size: cover;
+}
+.install-started .button_version {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.install-started .button_version .button {
+  display: flex;
+  flex-direction: row;
+}
+.install-started .button_version .button .enter-disabled {
+  text-align: center;
+  background: url("./Launcher/Buttons/state=inactive.png") no-repeat;
+  background-size: 100% 100%;
+  border: none;
+  color: white;
+  font-size: 24.79px;
+  font-family: "Gilroy-bold";
+  width: 119px;
+  height: 40px;
+  padding: 7.15px 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.install-started .button_version .button .version {
+  background: url("./Launcher/Buttons/state=inactive-1.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 22.21px;
+  height: 40px;
+}
+.install-started .button_version .version_text {
+  display: flex;
+  padding-top: 3px;
+}
+.install-started .button_version .version_text span {
+  color: white;
+  font-size: 10px;
+  font-family: "Gilroy-medium";
+}
+
+.update_panel {
+  display: none;
+}
+
+.update_panel[data-active] {
+  display: flex;
+}
+
+#settings {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  gap: 4.13px;
+  top: 21px;
+  right: 106.44px;
+  align-items: center;
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+}
+#settings .settings-img {
+  width: 12px;
+  height: 12px;
+  background-image: url("./Launcher/Buttons/Settings Button/state=Default.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+#settings p {
+  font-size: 12.65px;
+  color: white;
+  font-family: "Gilroy-semibold";
+}
+#settings:hover p {
+  color: #AF1D76;
+}
+#settings:hover .settings-img {
+  background-image: url("./Launcher/Buttons/Settings Button/state=hover.png");
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  padding-bottom: 3.86px;
+}
+.footer span {
+  color: white;
+  opacity: 0.3;
+  font-size: 10px;
+  font-family: "Gilroy-medium";
+}/*# sourceMappingURL=style.css.map */

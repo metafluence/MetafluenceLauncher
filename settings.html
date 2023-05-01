@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="settings.css" />
+</head>
+
+<body>
+    <div class="heading">
+        <span>LAUNCHER SETTINGS</span>
+    </div>
+    <div class="version-settings">
+        <span>App Version:</span>
+        <div class="button-version">
+            <div class="button">
+                <button id="enter">PUBLIC</button>
+                <button class="version version-selector"></button>
+                <div class="custom-select">
+                    <ul>
+                        <li data-value="test" class="list-item" id="test">test version (v1.3.4)</li>
+                        <li data-value="public" class="list-item" id="public">public version (v1.3.2)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="version-text">
+        <span>Launcher ver. 1.1.2</span>
+    </div>
+
+    <div class="updater-button" id="launcher-updater">
+        <button disabled>Version is up-to-date</button>
+    </div>
+
+    <div class="close-button">
+        <button id="close"></button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="./settings.js"></script>
+</body>
+</html>
