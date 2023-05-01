@@ -17,7 +17,6 @@
       "icon": "./images/logo_512.ico",
       "publish": {
         "provider": "github",
-        "releaseType": "release",
         "token": "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"
       }
     },
@@ -57,13 +56,13 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.4",
-    "@electron-forge/maker-deb": "^6.0.4",
-    "@electron-forge/maker-rpm": "^6.0.4",
-    "@electron-forge/maker-squirrel": "^6.0.4",
-    "electron-builder": "^23.6.0",
-    "@electron-forge/maker-zip": "^6.0.4",
-    "electron": "^22.2.0"
+    "@electron-forge/cli": "^6.1.1",
+    "@electron-forge/maker-deb": "^6.1.1",
+    "@electron-forge/maker-rpm": "^6.1.1",
+    "@electron-forge/maker-squirrel": "^6.1.1",
+    "@electron-forge/maker-zip": "^6.1.1",
+    "electron": "^22.3.7",
+    "electron-builder": "^23.6.0"
   },
   "dependencies": {
     "decompress-zip": "^0.3.3",
