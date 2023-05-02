@@ -559,7 +559,7 @@ app.whenReady().then(() => {
 
                 //run exe file
                 if (process.platform === "win32") {
-                    exec(path.join(store.get('downloadfileTest'), "/MetaF.exe"));
+                    exec(path.join(store.get('downloadfileTest'), "/Metafluence.exe"));
                 }
 
                 //run app file for mac
