@@ -1,0 +1,153 @@
+@font-face {
+  font-family: "Gilroy-bold";
+  src: url("./Launcher/Gilroy/Gilroy-Bold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Gilroy-medium";
+  src: url("./Launcher/Gilroy/Gilroy-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Gilroy-semibold";
+  src: url("./Launcher/Gilroy/Gilroy-Semibold.ttf") format("truetype");
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+li {
+  list-style: none;
+}
+
+body {
+  background-color: #190833;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
+.mf_logo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-top: 15px;
+}
+.mf_logo img {
+  width: 80%;
+}
+
+.install-loc {
+  padding-top: 15px;
+  padding-left: 25px;
+}
+.install-loc .heading {
+  display: block;
+  font-size: 14px;
+  font-family: "Gilroy-medium";
+  color: white;
+  padding-bottom: 5px;
+  padding-left: 2px;
+}
+.install-loc .input-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.install-loc .input-wrapper input[type=text] {
+  padding-left: 6px;
+  background: url("./Launcher/Install/TextField.png") no-repeat;
+  background-size: 100% 100%;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: "Gilroy-medium";
+  color: #A5A5A5;
+  height: 23px;
+  width: 365px;
+}
+.install-loc .input-wrapper button {
+  position: absolute;
+  transform: translateY(50%);
+  top: 0;
+  right: 6px;
+  height: 11px;
+  width: 14px;
+  background: url("./Launcher/Install/FolderIcon.png") no-repeat;
+  background-size: 100% 100%;
+  border: none;
+  cursor: pointer;
+}
+.install-loc .install-size {
+  display: block;
+  font-size: 10px;
+  font-family: "Gilroy-medium";
+  color: white;
+  padding-top: 5px;
+  padding-left: 2px;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  padding-top: 25px;
+}
+.buttons #install {
+  width: 80px;
+  height: 32px;
+  text-align: center;
+  background: url("./Launcher/Buttons/positive_button/state=Default.png") no-repeat;
+  background-size: 100% 100%;
+  border: none;
+  color: white;
+  font-size: 16px;
+  font-family: "Gilroy-bold";
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.buttons #install:hover {
+  cursor: pointer;
+  background: url("./Launcher/Buttons/positive_button/state=state2.png") no-repeat;
+  background-size: 100% 100%;
+}
+.buttons #install:active {
+  cursor: pointer;
+  background: url("./Launcher/Buttons/positive_button/state=state3.png") no-repeat;
+  background-size: 100% 100%;
+}
+
+.close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding-top: 12px;
+  padding-right: 11px;
+}
+.close-button #close {
+  background: url("./Launcher/CloseMinimize/close_default.png") no-repeat;
+  background-size: cover;
+  border: none;
+  width: 20px;
+  height: 20px;
+}
+.close-button #close:hover {
+  background: url("./Launcher/CloseMinimize/close_hover_press.png") no-repeat;
+  background-size: cover;
+  cursor: pointer;
+}/*# sourceMappingURL=install.css.map */

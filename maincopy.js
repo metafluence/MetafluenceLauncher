@@ -7,10 +7,12 @@ const Store = require("electron-store");
 const http = require("http");
 var DecompressZip = require("decompress-zip");
 var exec = require("child_process").spawn;
+const isFirstInstanceApp = app.requestSingleInstanceLock();
 
 let mw;
 let sw;
 let cw;
+let iw;
 let installInProgress = false;
 let versiontxt;
 let versionType = "public";
@@ -18,6 +20,15 @@ const store = new Store();
 let savePathCopy;
 let fileExists = false;
 let settingsOpened = false;
+let installLoc;
+let launcherIsUpdating = false;
+
+autoUpdater.autoDownload = false;
+
+if(!isFirstInstanceApp)
+{
+    app.quit();
+}
 
 function CreateMainWindow() {
     const mainWindow = new BrowserWindow({
@@ -90,6 +101,27 @@ function CreateConnectionWindow() {
     cWindow.loadFile(path.join(__dirname, '/connection.html'));
 
     cw = cWindow;
+}
+
+function CreateInstallWindow() {
+    const iWindow = new BrowserWindow({
+        width: 410,
+        height: 250,
+        frame: false,
+
+        webPreferences: {
+            preload: path.join(__dirname, '/preload.js')
+        },
+        resizable: false,
+        maximizable: false
+    });
+
+    iWindow.setMenuBarVisibility(false);
+
+    //iWindow.webContents.openDevTools();
+    iWindow.loadFile(path.join(__dirname, '/install.html'));
+
+    iw = iWindow;
 }
 
 function downloadFile(webFile, filePath, savePath, stat, version) {
@@ -277,16 +309,15 @@ app.on('before-quit', () => {
 
 app.whenReady().then(() => {
 
-    autoUpdater.checkForUpdatesAndNotify();
-
     //get default path for installation - currently user's program files
-    defaultPath = path.join(process.env.USERPROFILE, 'Program Files');
+    defaultPath = process.env.ProgramFiles;
+    installLoc = defaultPath;
 
     if (typeof mw === "undefined") {
         CreateMainWindow();
     }
 
-    setInterval(checkInternetConnection, 2000);
+    setInterval(checkInternetConnection, 5000);
 
     ipcMain.on('connection', (event, pressed) => {
         if (pressed == 0) {
@@ -328,6 +359,12 @@ app.whenReady().then(() => {
             sw.close();
             settingsOpened = false;
         }
+        if (button == 3) 
+        {
+            iw.close();
+            let emptyWindow;
+            iw = emptyWindow;
+        }
     })
 
     // mw.on('close', e => {
@@ -361,6 +398,9 @@ app.whenReady().then(() => {
                 settingsOpened = true;
                 sw.webContents.on('did-finish-load', () => {
                     sw.webContents.send('send-version', versionType);
+                    if (!launcherIsUpdating) {
+                        autoUpdater.checkForUpdates();
+                    }
                 })
             }
         }
@@ -385,6 +425,28 @@ app.whenReady().then(() => {
         else{
             mw.webContents.send('fetch-version', "public");
         }
+
+        autoUpdater.checkForUpdates();
+        autoUpdater.on('update-available', () => {
+            if (!settingsOpened) {
+                dialog.showMessageBox({
+                    type: 'info',
+                    buttons: ['DOWNLOAD NOW'],
+                    cancelId: 1,
+                    title: 'New Version',
+                    detail: 'New version of the launcher is available. Go to the Settings and download!'
+                }).then(({ response, checkboxChecked }) => {
+                    if (response == 0)
+                    {
+                        CreateSettingsWindow();
+                        settingsOpened = true;
+                        sw.webContents.on('did-finish-load', () => {
+                            autoUpdater.downloadUpdate();
+                        })
+                    }
+                })
+            }
+        })
     })
 
     ipcMain.on('read-version', (event, version) => {
@@ -393,6 +455,7 @@ app.whenReady().then(() => {
     })
 
     let filePath;
+    let savedPath;
     ipcMain.on('version-selected', (event, option) => {
         versionType = option;
         store.set('lastSelectedVersion', option);
@@ -400,13 +463,24 @@ app.whenReady().then(() => {
 
         if (versionType == "public") {
             filePath = path.join(app.getPath("userData"), '/version.txt');
+            if (store.has('downloadfilePublic')) {
+                savedPath = path.join(store.get('downloadfilePublic'), "/MetaF.exe");
+            }
         }
         else {
             filePath = path.join(app.getPath("userData"), '/versionTest.txt');
+            if (store.has('downloadfileTest')) {
+                savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.exe");
+            }
         }
 
         if (fs.existsSync(filePath)) {
-            fileExists = true;
+            if (typeof savedPath !== "undefined" && fs.existsSync(savedPath)) {
+                fileExists = true;
+            }
+            else {
+                fileExists = false;
+            }
         }
         else {
             fileExists = false;
@@ -572,49 +646,99 @@ app.whenReady().then(() => {
             mw.minimize();
         }
 
-        if (pressed == 2) {
-            dialog.showOpenDialog(mw, {
-                defaultPath,
-                properties: ['openDirectory', 'createDirectory']
-            }).then(result => {
-                if (!result.canceled) {
-                    installInProgress = true;
-                    const newPath = path.join(result.filePaths[0], "/Metafluence");
-                    if(fs.existsSync(newPath))
-                    {
-                        fs.rmdirSync(newPath, {recursive: true},(err) => {
-                            if (err) {
-                                console.log(err);
-                            }
-                        })
-                    }
-                    fs.mkdir(newPath, (err) => {
-                        if(err)
-                        {
-                            console.log("error at creating Metafluence folder");
-                        }
-                        else{
-                            if (versionType == "public") {
-                                downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
-                            }
-                            else{
-                                downloadFile("http://23.88.99.110/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
-                            }
-                        }
-                    })
+        if (pressed == 2) { //install from mainwindow pressed
+
+            if (typeof iw === "undefined") {
+                CreateInstallWindow();
+
+                if(versionType == "test")
+                {
+                    defaultPath = process.env.APPDATA;
+                    installLoc = defaultPath
                 }
-            }).catch(err => {
-                console.log(err);
+                iw.webContents.on('did-finish-load', () => {
+                    iw.webContents.send('location', defaultPath);
+                })
+            }
+        }
+
+        if (pressed == 3) { //install from install window pressed
+            iw.close();
+            let emptyWindow;
+            iw = emptyWindow;
+            installInProgress = true;
+            const newPath = path.join(installLoc, "/Metafluence");
+            if(fs.existsSync(newPath))
+            {
+                fs.rmdirSync(newPath, {recursive: true},(err) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+            }
+            fs.mkdir(newPath, (err) => {
+                if(err)
+                {
+                    console.log("error at creating Metafluence folder");
+                }
+                else{
+                    if (versionType == "public") {
+                        downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                    }
+                    else{
+                        downloadFile("http://23.88.99.110/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
+                    }
+                }
             })
         }
     })
 
-})
+    ipcMain.on('f-button-press', (event, pressed) => {
+         dialog.showOpenDialog(iw, {
+            defaultPath,
+            properties: ['openDirectory', 'createDirectory']
+         }).then(result => {
+            if (!result.canceled) {
+                iw.webContents.send('location', result.filePaths[0]);
+                installLoc = result.filePaths[0];
+            }
+        }).catch(err => {
+            console.log(err);
+        })
+    })
 
-autoUpdater.on('update-downloaded', () => {
-    mw.webContents.send('updated');
-})
+    autoUpdater.on('checking-for-update', () => {
+        if (settingsOpened) {
+            sw.webContents.send('updated', "check");
+        }
+    })
 
-ipcMain.on('restart-app', ()=>{
-    autoUpdater.quitAndInstall();
+    autoUpdater.on('update-not-available', () => {
+        if (settingsOpened) {
+            sw.webContents.send('updated', "noupdate");
+        }
+    })
+
+    autoUpdater.on('update-available', () => {
+        if (settingsOpened) {
+            sw.webContents.send('updated', "update");
+        }
+    })
+    
+    ipcMain.on('restart-app', ()=>{
+        autoUpdater.downloadUpdate();
+    })
+
+    autoUpdater.on(('update-downloaded'), () => {
+        autoUpdater.quitAndInstall();
+    })
+
+    autoUpdater.on(('download-progress'), (progress) => {
+        launcherIsUpdating = true;
+        if(settingsOpened)
+        {
+            let downloadText = "Downloaded: " + Math.round(progress.percent) + "%";
+            sw.webContents.send('updated', downloadText);
+        }
+    })
 })

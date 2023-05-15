@@ -71,12 +71,24 @@ $(document).ready(function () {
       };
     });
 
-    window.electronAPI.updatedLauncher(() => {
-      updateButton.disabled = false;
-      updateButton.innerText = "Restart for new version";
+    window.electronAPI.updatedLauncher((event, update) => {
+      if (update == "check") {
+        updateButton.innerText = "Checking for updates...";
+      }
+      else if (update == "noupdate") {
+        updateButton.innerText = "Version is up-to-date";
+      }
+      else if (update == "update") {
+        updateButton.disabled = false;
+        updateButton.innerText = "Click to Restart for new version";
+      }
+      else {
+        updateButton.innerText = update;
+      }
     });
 
     updateButton.addEventListener("click", function() {
+      updateButton.disabled = true;
       window.electronAPI.restartRequest();
     })
 })

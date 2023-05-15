@@ -18,5 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     sendVersionToSettings: (type) => ipcRenderer.on('send-version', type),
     connectionButtonPressed: (pressed) => ipcRenderer.send('connection', pressed),
     restartRequest: () => ipcRenderer.send('restart-app'),
-    updatedLauncher: () => ipcRenderer.on('updated'),
+    updatedLauncher: (update) => ipcRenderer.on('updated', update),
+    getInstallLocation: (location) => ipcRenderer.on('location', location),
+    folderButtonPressed: (pressed) => ipcRenderer.send('f-button-press', pressed)
 })
