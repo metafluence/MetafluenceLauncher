@@ -4,25 +4,44 @@ $(document).ready(function () {
     publicLI = document.getElementById("public");
     vText = document.getElementById("enter");
     updateButton = document.getElementById("launcher-updater");
+    let platformCopy;
 
-    window.electronAPI.sendVersionToSettings((event ,version) => {
+    window.electronAPI.sendVersionToSettings((event ,version, platform) => {
       vText.innerText = version.toUpperCase();
-    });
-
-
-    fetch("http://142.132.173.99/Version.txt", { cache: "no-cache" })
+      platformCopy = platform;
+      if(platform === "win32")
+      {
+        fetch("http://142.132.173.99/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
             .then((data) => (versionText = data))
             .then(() => {
                 publicLI.innerText = "public version (v" + versionText + ")";
             });
 
-    fetch("http://23.88.99.110/Version.txt", { cache: "no-cache" })
+        fetch("http://23.88.99.110/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
             .then((data) => (versionText = data))
             .then(() => {
                 testLI.innerText = "test version (v" + versionText + ")";
             });
+      }
+      if(platform === "darwin")
+      {
+        fetch("http://142.132.173.99/Mac/Version.txt", { cache: "no-cache" })
+            .then((response) => response.text())
+            .then((data) => (versionText = data))
+            .then(() => {
+                publicLI.innerText = "public version (v" + versionText + ")";
+            });
+
+        fetch("http://23.88.99.110/Mac/Version.txt", { cache: "no-cache" })
+            .then((response) => response.text())
+            .then((data) => (versionText = data))
+            .then(() => {
+                testLI.innerText = "test version (v" + versionText + ")";
+            });
+      }
+    });
 
 
     const closeButton = document.getElementById("close");
@@ -51,22 +70,47 @@ $(document).ready(function () {
         dropdown.style.display = "none";
         if (option.dataset.value == "public") {
           vText.innerText = "PUBLIC";
-          fetch("http://142.132.173.99/Version.txt", { cache: "no-cache" })
+          if(platformCopy === "win32")
+          {
+            fetch("http://142.132.173.99/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
             .then((data) => (versionText = data))
             .then(() => {
               window.electronAPI.readVersion(versionText);
               window.electronAPI.versionChange("public");
             });
+          }
+          if(platformCopy === "darwin")
+          {
+            fetch("http://142.132.173.99/Mac/Version.txt", { cache: "no-cache" })
+            .then((response) => response.text())
+            .then((data) => (versionText = data))
+            .then(() => {
+              window.electronAPI.readVersion(versionText);
+              window.electronAPI.versionChange("public");
+            });
+          }
         } else {
           vText.innerText = "TEST";
-          fetch("http://23.88.99.110/Version.txt", { cache: "no-cache" })
+          if (platformCopy === "win32") {
+            fetch("http://23.88.99.110/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
             .then((data) => (versionText = data))
             .then(() => {
               window.electronAPI.readVersion(versionText);
               window.electronAPI.versionChange("test");
             });
+          }
+          if(platformCopy === "darwin")
+          {
+            fetch("http://23.88.99.110/Mac/Version.txt", { cache: "no-cache" })
+            .then((response) => response.text())
+            .then((data) => (versionText = data))
+            .then(() => {
+              window.electronAPI.readVersion(versionText);
+              window.electronAPI.versionChange("test");
+            });
+          }
         }
       };
     });

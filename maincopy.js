@@ -21,6 +21,7 @@ let savePathCopy;
 let fileExists = false;
 let settingsOpened = false;
 let installLoc;
+let defaultPath;
 let launcherIsUpdating = false;
 
 autoUpdater.autoDownload = false;
@@ -264,10 +265,10 @@ function checkInternetConnection() {
         let emptyWindow;
         cw = emptyWindow;
         if(store.has('lastSelectedVersion')) {
-            mw.webContents.send('fetch-version', store.get('lastSelectedVersion'));
+            mw.webContents.send('fetch-version', store.get('lastSelectedVersion'), process.platform);
         }
         else{
-            mw.webContents.send('fetch-version', "public");
+            mw.webContents.send('fetch-version', "public", process.platform);
         }
       }
       if (!mw.isDestroyed()) {
@@ -310,14 +311,21 @@ app.on('before-quit', () => {
 app.whenReady().then(() => {
 
     //get default path for installation - currently user's program files
-    defaultPath = process.env.ProgramFiles;
+    if(process.platform === "win32")
+    {
+        defaultPath = process.env.ProgramFiles;
+    }
+    if(process.platform === "darwin")
+    {
+        defaultPath = process.env.HOME;
+    }
     installLoc = defaultPath;
 
     if (typeof mw === "undefined") {
         CreateMainWindow();
     }
 
-    setInterval(checkInternetConnection, 5000);
+    let connectionInterval = setInterval(checkInternetConnection, 8000);
 
     ipcMain.on('connection', (event, pressed) => {
         if (pressed == 0) {
@@ -367,37 +375,13 @@ app.whenReady().then(() => {
         }
     })
 
-    // mw.on('close', e => {
-    //     if (installInProgress) {
-    //         e.preventDefault()
-    //         dialog.showMessageBox({
-    //             type: 'warning',
-    //             buttons: ['Back', 'Yes'],
-    //             cancelId: 1,
-    //             defaultId: 0,
-    //             title: 'Warning',
-    //             detail: 'Installation is in progress. Are you sure?'
-    //         }).then(({ response, checkboxChecked }) => {
-    //             console.log(`response: ${response}`)
-    //             if (response) {
-    //                 mw.destroy()
-    //                 app.quit()
-    //             }
-    //         })
-    //     }
-    //     else {
-    //         mw.destroy();
-    //         app.quit();
-    //     }
-    // })
-
     ipcMain.on('s-button-press', (event, pressed) => {
         if (pressed == 0 && !installInProgress) {
             if (!settingsOpened) {
                 CreateSettingsWindow();
                 settingsOpened = true;
                 sw.webContents.on('did-finish-load', () => {
-                    sw.webContents.send('send-version', versionType);
+                    sw.webContents.send('send-version', versionType, process.platform);
                     if (!launcherIsUpdating) {
                         autoUpdater.checkForUpdates();
                     }
@@ -420,11 +404,19 @@ app.whenReady().then(() => {
 
     mw.webContents.on('did-finish-load', () => {
         if(store.has('lastSelectedVersion')) {
-            mw.webContents.send('fetch-version', store.get('lastSelectedVersion'));
+            mw.webContents.send('fetch-version', store.get('lastSelectedVersion'), process.platform);
         }
         else{
-            mw.webContents.send('fetch-version', "public");
+            mw.webContents.send('fetch-version', "public", process.platform);
         }
+
+        mw.on("minimize", () => {
+            clearInterval(connectionInterval);
+        })
+
+        mw.on("restore", () => {
+            connectionInterval = setInterval(checkInternetConnection, 8000);
+        })
 
         autoUpdater.checkForUpdates();
         autoUpdater.on('update-available', () => {
@@ -464,13 +456,23 @@ app.whenReady().then(() => {
         if (versionType == "public") {
             filePath = path.join(app.getPath("userData"), '/version.txt');
             if (store.has('downloadfilePublic')) {
-                savedPath = path.join(store.get('downloadfilePublic'), "/MetaF.exe");
+                if (process.platform === "win32") {
+                    savedPath = path.join(store.get('downloadfilePublic'), "/MetaF.exe");
+                }
+                if (process.platform === "darwin") {
+                    savedPath = path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF");
+                }
             }
         }
         else {
             filePath = path.join(app.getPath("userData"), '/versionTest.txt');
             if (store.has('downloadfileTest')) {
-                savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.exe");
+                if (process.platform === "win32") {
+                    savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.exe");
+                }
+                if (process.platform === "darwin") {
+                    savedPath = path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/Metafluence");
+                }
             }
         }
 
@@ -511,7 +513,7 @@ app.whenReady().then(() => {
     ipcMain.on('update-check-request', (event, request) => {
 
         if (request == 1) {
-            mw.webContents.send('fetch-version', versionType);
+            mw.webContents.send('fetch-version', versionType, process.platform);
             console.log("checking for", versionType);
         }
     })
@@ -605,10 +607,24 @@ app.whenReady().then(() => {
             installInProgress = true;
             mw.webContents.send('send-phase', "Downloading...");
             if (versionType == "public") {
-                downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                if(process.platform === "win32")
+                {
+                    downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                }
+                if(process.platform === "darwin")
+                {
+                    downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                }
             }
             else{
-                downloadFile("http://23.88.99.110/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
+                if(process.platform === "win32")
+                {
+                    downloadFile("http://23.88.99.110/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
+                }
+                if(process.platform === "darwin")
+                {
+                    downloadFile("http://23.88.99.110/Mac/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
+                }
             }
         }
 
@@ -639,7 +655,7 @@ app.whenReady().then(() => {
                 //run app file for mac
 
                 if (process.platform === "darwin") {
-                    exec(path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/MetaF"));
+                    exec(path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/Metafluence"));
                 }
             }
 
@@ -653,9 +669,27 @@ app.whenReady().then(() => {
 
                 if(versionType == "test")
                 {
-                    defaultPath = process.env.APPDATA;
-                    installLoc = defaultPath
+                    if(process.platform === "win32")
+                    {
+                        defaultPath = process.env.APPDATA;
+                    }
+                    if(process.platform === "darwin")
+                    {
+                        defaultPath = process.env.HOME;
+                    }
                 }
+                else
+                {
+                    if(process.platform === "win32")
+                    {
+                        defaultPath = process.env.ProgramFiles;
+                    }
+                    if(process.platform === "darwin")
+                    {
+                        defaultPath = process.env.HOME;
+                    }
+                }
+                installLoc = defaultPath
                 iw.webContents.on('did-finish-load', () => {
                     iw.webContents.send('location', defaultPath);
                 })
@@ -683,10 +717,24 @@ app.whenReady().then(() => {
                 }
                 else{
                     if (versionType == "public") {
-                        downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                        if(process.platform === "win32")
+                        {
+                            downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                        }
+                        if(process.platform === "darwin")
+                        {
+                            downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                        }
                     }
                     else{
-                        downloadFile("http://23.88.99.110/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
+                        if(process.platform === "win32")
+                        {
+                            downloadFile("http://23.88.99.110/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
+                        }
+                        if(process.platform === "darwin")
+                        {
+                            downloadFile("http://23.88.99.110/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
+                        }
                     }
                 }
             })

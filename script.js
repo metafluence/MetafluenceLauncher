@@ -52,16 +52,6 @@ myFunc = setInterval(() => carouselHandler(-1), 30000);
 
 let versionText;
 
-// fetch("http://142.132.173.99/Version.txt", { cache: "no-cache" })
-//   .then((response) => response.text())
-//   .then((data) => (versionText = data))
-//   .then(() => {
-//     window.electronAPI.readVersion(versionText);
-//     setVersionText(versionText, "public");
-//     window.electronAPI.versionChange("public");
-//   });
-
-
 window.electronAPI.changeVersionText((event, vtxt, option) => {
   setVersionText(vtxt, option);
 })
@@ -78,24 +68,50 @@ window.electronAPI.updatePanelStatus((event, status) => {
   updatePanels[status].dataset.active = true;
 });
 
-window.electronAPI.fetchVersion((event, request) => {
+window.electronAPI.fetchVersion((event, request, platform) => {
   if (request == "public") {
-    fetch("http://142.132.173.99/Version.txt", { cache: "no-cache" })
-    .then((response) => response.text())
-    .then((data) => (versionText = data))
-    .then(() => {
-      window.electronAPI.readVersion(versionText);
-      window.electronAPI.versionChange("public");
-    });
+    if(platform === "win32")
+    {
+      fetch("http://142.132.173.99/Version.txt", { cache: "no-cache" })
+      .then((response) => response.text())
+      .then((data) => (versionText = data))
+      .then(() => {
+        window.electronAPI.readVersion(versionText);
+        window.electronAPI.versionChange("public");
+      });
+    }
+    if(platform === "darwin")
+    {
+      fetch("http://142.132.173.99/Mac/Version.txt", { cache: "no-cache" })
+      .then((response) => response.text())
+      .then((data) => (versionText = data))
+      .then(() => {
+        window.electronAPI.readVersion(versionText);
+        window.electronAPI.versionChange("public");
+      });
+    }
   }
   else{
-    fetch("http://23.88.99.110/Version.txt", { cache: "no-cache" })
+    if(platform === "win32")
+    {
+      fetch("http://23.88.99.110/Version.txt", { cache: "no-cache" })
         .then((response) => response.text())
         .then((data) => (versionText = data))
         .then(() => {
           window.electronAPI.readVersion(versionText);
           window.electronAPI.versionChange("test");
         });
+    }
+    if(platform === "darwin")
+    {
+      fetch("http://23.88.99.110/Mac/Version.txt", { cache: "no-cache" })
+        .then((response) => response.text())
+        .then((data) => (versionText = data))
+        .then(() => {
+          window.electronAPI.readVersion(versionText);
+          window.electronAPI.versionChange("test");
+        });
+    }
   }
 });
   
