@@ -637,12 +637,18 @@ app.whenReady().then(() => {
                 //run exe file
                 if (process.platform === "win32") {
                     exec(path.join(store.get('downloadfilePublic'), "/MetaF.exe"));
+                    setTimeout(() => {
+                        app.quit();
+                    }, 2000)
                 }
 
                 //run app file for mac
 
                 if (process.platform === "darwin") {
                     exec(path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF"));
+                    setTimeout(() => {
+                        app.quit();
+                    }, 2000)
                 }
             }
             else{
@@ -650,12 +656,18 @@ app.whenReady().then(() => {
                 //run exe file
                 if (process.platform === "win32") {
                     exec(path.join(store.get('downloadfileTest'), "/Metafluence.exe"));
+                    setTimeout(() => {
+                        app.quit();
+                    }, 2000)
                 }
 
                 //run app file for mac
 
                 if (process.platform === "darwin") {
                     exec(path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/Metafluence"));
+                    setTimeout(() => {
+                        app.quit();
+                    }, 2000)
                 }
             }
 
