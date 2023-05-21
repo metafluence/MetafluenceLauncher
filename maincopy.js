@@ -457,7 +457,7 @@ app.whenReady().then(() => {
             filePath = path.join(app.getPath("userData"), '/version.txt');
             if (store.has('downloadfilePublic')) {
                 if (process.platform === "win32") {
-                    savedPath = path.join(store.get('downloadfilePublic'), "/MetaF.exe");
+                    savedPath = path.join(store.get('downloadfilePublic'), "/Metafluence.exe");
                 }
                 if (process.platform === "darwin") {
                     savedPath = path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF");
@@ -636,7 +636,7 @@ app.whenReady().then(() => {
            {
                 //run exe file
                 if (process.platform === "win32") {
-                    exec(path.join(store.get('downloadfilePublic'), "/MetaF.exe"));
+                    exec(path.join(store.get('downloadfilePublic'), "/Metafluence.exe"));
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
