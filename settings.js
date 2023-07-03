@@ -72,7 +72,7 @@ $(document).ready(function () {
           vText.innerText = "PUBLIC";
           if(platformCopy === "win32")
           {
-            fetch("http://142.132.173.99/Version.txt", { cache: "no-cache" })
+            fetch("http://128.140.45.21/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
             .then((data) => (versionText = data))
             .then(() => {
@@ -82,7 +82,7 @@ $(document).ready(function () {
           }
           if(platformCopy === "darwin")
           {
-            fetch("http://142.132.173.99/Mac/Version.txt", { cache: "no-cache" })
+            fetch("http://128.140.45.21/Mac/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
             .then((data) => (versionText = data))
             .then(() => {
@@ -93,7 +93,7 @@ $(document).ready(function () {
         } else {
           vText.innerText = "TEST";
           if (platformCopy === "win32") {
-            fetch("http://23.88.99.110/Version.txt", { cache: "no-cache" })
+            fetch("http://94.130.76.49/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
             .then((data) => (versionText = data))
             .then(() => {
@@ -103,7 +103,7 @@ $(document).ready(function () {
           }
           if(platformCopy === "darwin")
           {
-            fetch("http://23.88.99.110/Mac/Version.txt", { cache: "no-cache" })
+            fetch("http://94.130.76.49/Mac/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
             .then((data) => (versionText = data))
             .then(() => {
