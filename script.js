@@ -72,7 +72,7 @@ window.electronAPI.fetchVersion((event, request, platform) => {
   if (request == "public") {
     if(platform === "win32")
     {
-      fetch("http://128.140.45.21/Version.txt", { cache: "no-cache" })
+      fetch("http://142.132.173.99/Version.txt", { cache: "no-cache" })
       .then((response) => response.text())
       .then((data) => (versionText = data))
       .then(() => {
@@ -82,7 +82,7 @@ window.electronAPI.fetchVersion((event, request, platform) => {
     }
     if(platform === "darwin")
     {
-      fetch("http://128.140.45.21/Mac/Version.txt", { cache: "no-cache" })
+      fetch("http://142.132.173.99/Mac/Version.txt", { cache: "no-cache" })
       .then((response) => response.text())
       .then((data) => (versionText = data))
       .then(() => {

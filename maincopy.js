@@ -609,11 +609,11 @@ app.whenReady().then(() => {
             if (versionType == "public") {
                 if(process.platform === "win32")
                 {
-                    downloadFile("http://128.140.45.21/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                    downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
                 }
                 if(process.platform === "darwin")
                 {
-                    downloadFile("http://128.140.45.21/Mac/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                    downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
                 }
             }
             else{
@@ -731,11 +731,11 @@ app.whenReady().then(() => {
                     if (versionType == "public") {
                         if(process.platform === "win32")
                         {
-                            downloadFile("http://128.140.45.21/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                            downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
                         }
                         if(process.platform === "darwin")
                         {
-                            downloadFile("http://128.140.45.21/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                            downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
                         }
                     }
                     else{
