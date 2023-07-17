@@ -7,6 +7,7 @@ const Store = require("electron-store");
 const http = require("http");
 var DecompressZip = require("decompress-zip");
 var exec = require("child_process").spawn;
+var exc = require("child_process").execFile;
 const isFirstInstanceApp = app.requestSingleInstanceLock();
 
 let mw;
@@ -222,9 +223,10 @@ function extractFiles(filePath, savePath, stat, version) {
         fs.writeFile(filePath, versiontxt, function (err) {
             if (err) throw err;
             console.log('Saved');
-            mw.webContents.send('update-status', 0);
-            installInProgress = false;
             savePathCopy = "";
+
+            mw.webContents.send('send-phase', "Starting Setup...");
+            installInProgress = false;
 
             if (stat == 0) {
                 if (version == "test") {
@@ -233,6 +235,24 @@ function extractFiles(filePath, savePath, stat, version) {
                 else {
                     store.set('downloadfilePublic', path.join(savePath, ".."));
                 }
+            }
+
+            if(version == "test")
+            {
+                exec(path.join(store.get('downloadfileTest'), "/metafluence_test.exe"), [], {'detached': true});
+                setTimeout(() => {
+                    app.quit();
+                }, 5000)
+
+                //add mac support later
+            }
+            else{
+                exec(path.join(store.get('downloadfilePublic'), "/metafluence_prod.exe"), [], {'detached': true});
+                setTimeout(() => {
+                    app.quit();
+                }, 5000)
+
+                //add mac support later
             }
         })
 
@@ -325,7 +345,7 @@ app.whenReady().then(() => {
         CreateMainWindow();
     }
 
-    let connectionInterval = setInterval(checkInternetConnection, 8000);
+    //let connectionInterval = setInterval(checkInternetConnection, 8000);
 
     ipcMain.on('connection', (event, pressed) => {
         if (pressed == 0) {
@@ -395,7 +415,7 @@ app.whenReady().then(() => {
                 cancelId: 0,
                 defaultId: 0,
                 title: 'Warning',
-                detail: 'Settings is not available during a download'
+                detail: 'Settings is not available during the download'
             }).then(({ response, checkboxChecked }) => {
 
             })
@@ -411,11 +431,11 @@ app.whenReady().then(() => {
         }
 
         mw.on("minimize", () => {
-            clearInterval(connectionInterval);
+            //clearInterval(connectionInterval);
         })
 
         mw.on("restore", () => {
-            connectionInterval = setInterval(checkInternetConnection, 8000);
+            //connectionInterval = setInterval(checkInternetConnection, 8000);
         })
 
         autoUpdater.checkForUpdates();
@@ -457,7 +477,7 @@ app.whenReady().then(() => {
             filePath = path.join(app.getPath("userData"), '/version.txt');
             if (store.has('downloadfilePublic')) {
                 if (process.platform === "win32") {
-                    savedPath = path.join(store.get('downloadfilePublic'), "/Metafluence.exe");
+                    savedPath = path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/Metafluence/Metafluence.exe")
                 }
                 if (process.platform === "darwin") {
                     savedPath = path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF");
@@ -468,7 +488,7 @@ app.whenReady().then(() => {
             filePath = path.join(app.getPath("userData"), '/versionTest.txt');
             if (store.has('downloadfileTest')) {
                 if (process.platform === "win32") {
-                    savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.exe");
+                    savedPath = path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/MetafluenceTest/Metafluence.exe")
                 }
                 if (process.platform === "darwin") {
                     savedPath = path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/Metafluence");
@@ -601,6 +621,21 @@ app.whenReady().then(() => {
     ipcMain.on('button-press', (event, pressed) => {
         if (pressed == 1) //update pressed
         {
+
+            if (versionType == "public") {
+                fs.rmdir(path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/Metafluence"), {recursive: true},(err) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+            }
+            else{
+                fs.rmdir(path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/MetafluenceTest"), {recursive: true},(err) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+            }
             //switch to install panel
             mw.webContents.send('update-status', 3);
 
@@ -636,7 +671,7 @@ app.whenReady().then(() => {
            {
                 //run exe file
                 if (process.platform === "win32") {
-                    exec(path.join(store.get('downloadfilePublic'), "/Metafluence.exe"));
+                    exec(path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/Metafluence/Metafluence.exe"), [], {'detached': true});
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
@@ -645,7 +680,7 @@ app.whenReady().then(() => {
                 //run app file for mac
 
                 if (process.platform === "darwin") {
-                    exec(path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF"));
+                    exec(path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF"), [], {'detached': true});
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
@@ -655,7 +690,7 @@ app.whenReady().then(() => {
 
                 //run exe file
                 if (process.platform === "win32") {
-                    exec(path.join(store.get('downloadfileTest'), "/Metafluence.exe"));
+                    exec(path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/MetafluenceTest/Metafluence.exe"));
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
