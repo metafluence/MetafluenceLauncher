@@ -28,6 +28,7 @@ window.electronAPI.changeVersionText((event, vtxt, option) => {
 let versionNote = document.getElementById("version-note");
 const updatePanels = document.getElementsByClassName("update_panel");
 const navbarDropdown = document.getElementById("navbarDropdown");
+const settingsButton = document.getElementById("btn-settings");
 
 window.electronAPI.updatePanelStatus((event, status) => {
   for (let index = 0; index < updatePanels.length; index++) {
@@ -43,18 +44,21 @@ window.electronAPI.updatePanelStatus((event, status) => {
       versionNote.textContent = "Version is up to date. Enter the Metafluence now.";
       currentFunctionality = 1
       navbarDropdown.disabled = false;
+      settingsButton.disabled = false;
       break;
     
     case 1:
       versionNote.textContent = "New version of the app is available.";
       currentFunctionality = 2;
       navbarDropdown.disabled = false;
+      settingsButton.disabled = false;
       break;
 
     case 2:
       versionNote.textContent = "Install the app to enter the Metafluence.";
       currentFunctionality = 3;
       navbarDropdown.disabled = false;
+      settingsButton.disabled = false;
       break;
 
     case 3:
@@ -310,7 +314,6 @@ window.electronAPI.changePhase((event, phase) => {
   });
 
   const modalContents = document.getElementsByClassName("modal-content");
-  const settingsButton = document.getElementById("btn-settings");
   const reloadButton = document.getElementById("reload");
   const connectionCloseBtn = document.getElementById("connection-close");
 
@@ -360,7 +363,7 @@ window.electronAPI.changePhase((event, phase) => {
       settingsButton.click();
     }
     else{
-      updateProgressBar.style.width = update;
+      updateProgressBar.style.width = update + "%";
     }
   });
 
@@ -368,6 +371,8 @@ window.electronAPI.changePhase((event, phase) => {
   launcherUpdateBtn.addEventListener("click", function () {
     window.electronAPI.restartRequest();
     progressArea.style.transform = 'translateX(0)';
+    settingsButton.disabled = true;
+    installButton.disabled = true;
   });
 
 
@@ -384,10 +389,27 @@ window.electronAPI.changePhase((event, phase) => {
 
   const confirmButton = document.getElementById("confirm");
   const installClose = document.getElementById("close-install");
+
+  installClose.addEventListener("click", function () {
+    for (let index = 0; index < modalContents.length; index++) {
+      if (modalContents[index].hasAttribute("data-active")) {
+        delete modalContents[index].dataset.active;
+      }
+    }
+    modalContents[2].dataset.active = true;
+  });
+
   confirmButton.addEventListener("click", function () {
     window.electronAPI.installButtonPressed(3);
     currentFunctionality = 0;
+    for (let index = 0; index < modalContents.length; index++) {
+      if (modalContents[index].hasAttribute("data-active")) {
+        delete modalContents[index].dataset.active;
+      }
+    }
+    modalContents[2].dataset.active = true;
     navbarDropdown.disabled = true;
+    settingsButton.disabled = true;
     installClose.click();
   });
 

@@ -49,7 +49,7 @@ function CreateMainWindow() {
     //remove toolbar from windows
     mainWindow.setMenuBarVisibility(false);
 
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
     mainWindow.loadFile(path.join(__dirname, '/index.html'));
 
     //Opening links in OS default browser
@@ -642,7 +642,7 @@ app.whenReady().then(() => {
            {
                 //run exe file
                 if (process.platform === "win32") {
-                    exec(path.join(store.get('downloadfilePublic'), "/Metafluence.exe"));
+                    exec(path.join(store.get('downloadfilePublic'), "/Metafluence.exe"), [], {'detached': true});
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
@@ -661,7 +661,7 @@ app.whenReady().then(() => {
 
                 //run exe file
                 if (process.platform === "win32") {
-                    exec(path.join(store.get('downloadfileTest'), "/Metafluence.exe"));
+                    exec(path.join(store.get('downloadfileTest'), "/Metafluence.exe"), [], {'detached': true});
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
@@ -786,10 +786,7 @@ app.whenReady().then(() => {
 
     autoUpdater.on(('download-progress'), (progress) => {
         launcherIsUpdating = true;
-        if(settingsOpened)
-        {
-            let downloadText = Math.round(progress.percent);
-            mw.webContents.send('updated', downloadText);
-        }
+        let downloadText = Math.round(progress.percent);
+        mw.webContents.send("updated", downloadText);
     })
 })
