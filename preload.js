@@ -1,5 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
+//from main process to other part - use on
+//from other parts to main process - use send
+
 contextBridge.exposeInMainWorld('electronAPI', {
     readVersion: (version) => ipcRenderer.send('read-version', version),
     updatePanelStatus: (status) => ipcRenderer.on('update-status', status),
@@ -20,5 +23,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     restartRequest: () => ipcRenderer.send('restart-app'),
     updatedLauncher: (update) => ipcRenderer.on('updated', update),
     getInstallLocation: (location) => ipcRenderer.on('location', location),
-    folderButtonPressed: (pressed) => ipcRenderer.send('f-button-press', pressed)
+    folderButtonPressed: (pressed) => ipcRenderer.send('f-button-press', pressed),
+    connectionLost: (status) => ipcRenderer.on('lost-connection', status),   // status - 0 (not lost), 1 (lost)
+    chooseInstallLoc: (loc) => ipcRenderer.on('choose-location', loc),
+    getAppVersion: (version) => ipcRenderer.on('get-app-version', version)
 })

@@ -7,13 +7,12 @@ const Store = require("electron-store");
 const http = require("http");
 var DecompressZip = require("decompress-zip");
 var exec = require("child_process").spawn;
-var exc = require("child_process").execFile;
 const isFirstInstanceApp = app.requestSingleInstanceLock();
 
 let mw;
-let sw;
-let cw;
-let iw;
+// let sw;
+// let cw;
+// let iw;
 let installInProgress = false;
 let versiontxt;
 let versionType = "public";
@@ -24,6 +23,7 @@ let settingsOpened = false;
 let installLoc;
 let defaultPath;
 let launcherIsUpdating = false;
+let connectionLost = false;
 
 autoUpdater.autoDownload = false;
 
@@ -49,7 +49,7 @@ function CreateMainWindow() {
     //remove toolbar from windows
     mainWindow.setMenuBarVisibility(false);
 
-    // mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
     mainWindow.loadFile(path.join(__dirname, '/index.html'));
 
     //Opening links in OS default browser
@@ -61,70 +61,70 @@ function CreateMainWindow() {
     mw = mainWindow;
 }
 
-function CreateSettingsWindow() {
-    const sWindow = new BrowserWindow({
-        width: 328,
-        height: 246,
-        frame: false,
+// function CreateSettingsWindow() {
+//     const sWindow = new BrowserWindow({
+//         width: 328,
+//         height: 246,
+//         frame: false,
 
-        webPreferences: {
-            preload: path.join(__dirname, '/preload.js')
-        },
-        resizable: false,
-        maximizable: false
-    });
+//         webPreferences: {
+//             preload: path.join(__dirname, '/preload.js')
+//         },
+//         resizable: false,
+//         maximizable: false
+//     });
 
-    sWindow.setMenuBarVisibility(false);
+//     sWindow.setMenuBarVisibility(false);
 
-    //sWindow.webContents.openDevTools();
-    sWindow.loadFile(path.join(__dirname, '/settings.html'));
+//     //sWindow.webContents.openDevTools();
+//     sWindow.loadFile(path.join(__dirname, '/settings.html'));
 
-    sw = sWindow;
+//     sw = sWindow;
 
-}
+// }
 
-function CreateConnectionWindow() {
-    const cWindow = new BrowserWindow({
-        width: 328,
-        height: 210,
-        frame: false,
-        alwaysOnTop: true,
+// function CreateConnectionWindow() {
+//     const cWindow = new BrowserWindow({
+//         width: 328,
+//         height: 210,
+//         frame: false,
+//         alwaysOnTop: true,
 
-        webPreferences: {
-            preload: path.join(__dirname, '/preload.js')
-        },
-        resizable: false,
-        maximizable: false
-    });
+//         webPreferences: {
+//             preload: path.join(__dirname, '/preload.js')
+//         },
+//         resizable: false,
+//         maximizable: false
+//     });
 
-    cWindow.setMenuBarVisibility(false);
+//     cWindow.setMenuBarVisibility(false);
 
-    //cWindow.webContents.openDevTools();
-    cWindow.loadFile(path.join(__dirname, '/connection.html'));
+//     //cWindow.webContents.openDevTools();
+//     cWindow.loadFile(path.join(__dirname, '/connection.html'));
 
-    cw = cWindow;
-}
+//     cw = cWindow;
+// }
 
-function CreateInstallWindow() {
-    const iWindow = new BrowserWindow({
-        width: 410,
-        height: 250,
-        frame: false,
+// function CreateInstallWindow() {
+//     const iWindow = new BrowserWindow({
+//         width: 410,
+//         height: 250,
+//         frame: false,
 
-        webPreferences: {
-            preload: path.join(__dirname, '/preload.js')
-        },
-        resizable: false,
-        maximizable: false
-    });
+//         webPreferences: {
+//             preload: path.join(__dirname, '/preload.js')
+//         },
+//         resizable: false,
+//         maximizable: false
+//     });
 
-    iWindow.setMenuBarVisibility(false);
+//     iWindow.setMenuBarVisibility(false);
 
-    //iWindow.webContents.openDevTools();
-    iWindow.loadFile(path.join(__dirname, '/install.html'));
+//     //iWindow.webContents.openDevTools();
+//     iWindow.loadFile(path.join(__dirname, '/install.html'));
 
-    iw = iWindow;
-}
+//     iw = iWindow;
+// }
 
 function downloadFile(webFile, filePath, savePath, stat, version) {
     //webfile - downloaded file
@@ -155,7 +155,7 @@ function downloadFile(webFile, filePath, savePath, stat, version) {
                 }
                 if (!mw.isDestroyed()) {
                     mw.webContents.send('send-progress', showProgress(received_bytes, total_bytes));
-                    mw.webContents.send('send-phase', "Downloading... " + (received_bytes / 1e9).toFixed(2) + "/" + (total_bytes / 1e9).toFixed(2) + " GB  (" + downloadSpeed + " " + dataRate + ")");
+                    mw.webContents.send('send-phase', "Downloading... " + "(" + downloadSpeed + " " + dataRate + ")");
                 }
             })
     
@@ -187,7 +187,7 @@ function downloadFile(webFile, filePath, savePath, stat, version) {
     try {
         req.on('response', data => {
             total_bytes = parseInt(data.headers['content-length']);
-            mw.webContents.send('update-status', 4);
+            mw.webContents.send('update-status', 3);
         });
     } catch (error) {
         console.log(error);
@@ -205,7 +205,7 @@ function downloadFile(webFile, filePath, savePath, stat, version) {
 }
 
 function showProgress(received, total) {
-    var percentage = (received * 100) / total;
+    var percentage = ((received * 100) / total).toFixed(0);
 
     return percentage;
 }
@@ -223,10 +223,9 @@ function extractFiles(filePath, savePath, stat, version) {
         fs.writeFile(filePath, versiontxt, function (err) {
             if (err) throw err;
             console.log('Saved');
-            savePathCopy = "";
-
-            mw.webContents.send('send-phase', "Starting Setup...");
+            mw.webContents.send('update-status', 0);
             installInProgress = false;
+            savePathCopy = "";
 
             if (stat == 0) {
                 if (version == "test") {
@@ -235,24 +234,6 @@ function extractFiles(filePath, savePath, stat, version) {
                 else {
                     store.set('downloadfilePublic', path.join(savePath, ".."));
                 }
-            }
-
-            if(version == "test")
-            {
-                exec(path.join(store.get('downloadfileTest'), "/metafluence_test.exe"), [], {'detached': true});
-                setTimeout(() => {
-                    app.quit();
-                }, 5000)
-
-                //add mac support later
-            }
-            else{
-                exec(path.join(store.get('downloadfilePublic'), "/metafluence_prod.exe"), [], {'detached': true});
-                setTimeout(() => {
-                    app.quit();
-                }, 5000)
-
-                //add mac support later
             }
         })
 
@@ -280,25 +261,24 @@ function extractFiles(filePath, savePath, stat, version) {
 
 function checkInternetConnection() {
     http.get('http://www.google.com', (res) => {
-      if (typeof cw !== "undefined" && !cw.isDestroyed()) {
-        cw.close();
-        let emptyWindow;
-        cw = emptyWindow;
+      if (connectionLost == true) {
+        mw.webContents.send('lost-connection', 0);
         if(store.has('lastSelectedVersion')) {
             mw.webContents.send('fetch-version', store.get('lastSelectedVersion'), process.platform);
+            mw.webContents.send('send-version', store.get('lastSelectedVersion'), process.platform);
         }
         else{
             mw.webContents.send('fetch-version', "public", process.platform);
+            mw.webContents.send('send-version', "public", process.platform);
         }
       }
-      if (!mw.isDestroyed()) {
-            mw.setIgnoreMouseEvents(false);
-      }
+
+      return true;
     }).on('error', (err) => {
-        if (typeof cw === "undefined") {
-            if (!mw.isDestroyed() && !mw.isMinimized() && mw.isFocused()) {
-                CreateConnectionWindow();
-                mw.setIgnoreMouseEvents(true);
+        if (connectionLost == false) {
+            if (!mw.isDestroyed() && !mw.isMinimized()) {
+                mw.webContents.send('lost-connection', 1);
+                connectionLost = true;
             }
         }
 
@@ -313,6 +293,8 @@ function checkInternetConnection() {
             }
             installInProgress = false;
         }
+
+        return false;
     });
 }
 
@@ -345,14 +327,11 @@ app.whenReady().then(() => {
         CreateMainWindow();
     }
 
-    //let connectionInterval = setInterval(checkInternetConnection, 8000);
+    let connectionInterval = setInterval(checkInternetConnection, 8000);
 
     ipcMain.on('connection', (event, pressed) => {
         if (pressed == 0) {
-            cw.close();
-            let emptyWindow;
-            cw = emptyWindow;
-            //checkInternetConnection();
+            checkInternetConnection();
         }
         if (pressed == 1) {
             app.quit();
@@ -383,82 +362,89 @@ app.whenReady().then(() => {
         if (button == 0) {
             mw.minimize();
         }
-        if (button == 2) {
-            sw.close();
-            settingsOpened = false;
-        }
-        if (button == 3) 
-        {
-            iw.close();
-            let emptyWindow;
-            iw = emptyWindow;
-        }
+        // if (button == 2) {
+        //     sw.close();
+        //     settingsOpened = false;
+        // }
+        // if (button == 3) 
+        // {
+        //     iw.close();
+        //     let emptyWindow;
+        //     iw = emptyWindow;
+        // }
     })
 
-    ipcMain.on('s-button-press', (event, pressed) => {
-        if (pressed == 0 && !installInProgress) {
-            if (!settingsOpened) {
-                CreateSettingsWindow();
-                settingsOpened = true;
-                sw.webContents.on('did-finish-load', () => {
-                    sw.webContents.send('send-version', versionType, process.platform);
-                    if (!launcherIsUpdating) {
-                        autoUpdater.checkForUpdates();
-                    }
-                })
-            }
-        }
-        else {
-            dialog.showMessageBox({
-                type: 'warning',
-                buttons: ['OKAY'],
-                cancelId: 0,
-                defaultId: 0,
-                title: 'Warning',
-                detail: 'Settings is not available during the download'
-            }).then(({ response, checkboxChecked }) => {
+    // ipcMain.on('s-button-press', (event, pressed) => {
+    //     if (pressed == 0 && !installInProgress) {
+    //         if (!settingsOpened) {
+    //             //CreateSettingsWindow();
+    //             settingsOpened = true;
+    //             sw.webContents.on('did-finish-load', () => {
+    //                 sw.webContents.send('send-version', versionType, process.platform);
+    //                 if (!launcherIsUpdating) {
+    //                     autoUpdater.checkForUpdates();
+    //                 }
+    //             })
+    //         }
+    //     }
+    //     else {
+    //         dialog.showMessageBox({
+    //             type: 'warning',
+    //             buttons: ['OKAY'],
+    //             cancelId: 0,
+    //             defaultId: 0,
+    //             title: 'Warning',
+    //             detail: 'Settings is not available during a download'
+    //         }).then(({ response, checkboxChecked }) => {
 
-            })
-        }
-    })
+    //         })
+    //     }
+    // })
 
     mw.webContents.on('did-finish-load', () => {
+
+        mw.webContents.send('get-app-version', app.getVersion());
+        
+        checkInternetConnection();
+
         if(store.has('lastSelectedVersion')) {
             mw.webContents.send('fetch-version', store.get('lastSelectedVersion'), process.platform);
+            mw.webContents.send('send-version', store.get('lastSelectedVersion'), process.platform);
         }
         else{
             mw.webContents.send('fetch-version', "public", process.platform);
+            mw.webContents.send('send-version', "public", process.platform);
         }
 
         mw.on("minimize", () => {
-            //clearInterval(connectionInterval);
+            clearInterval(connectionInterval);
         })
 
         mw.on("restore", () => {
-            //connectionInterval = setInterval(checkInternetConnection, 8000);
+            connectionInterval = setInterval(checkInternetConnection, 8000);
         })
 
         autoUpdater.checkForUpdates();
-        autoUpdater.on('update-available', () => {
-            if (!settingsOpened) {
-                dialog.showMessageBox({
-                    type: 'info',
-                    buttons: ['DOWNLOAD NOW'],
-                    cancelId: 1,
-                    title: 'New Version',
-                    detail: 'New version of the launcher is available. Go to the Settings and download!'
-                }).then(({ response, checkboxChecked }) => {
-                    if (response == 0)
-                    {
-                        CreateSettingsWindow();
-                        settingsOpened = true;
-                        sw.webContents.on('did-finish-load', () => {
-                            autoUpdater.downloadUpdate();
-                        })
-                    }
-                })
-            }
-        })
+        // autoUpdater.on('update-available', () => {
+        //     if (!settingsOpened) {
+        //         dialog.showMessageBox({
+        //             type: 'info',
+        //             buttons: ['DOWNLOAD NOW'],
+        //             cancelId: 1,
+        //             title: 'New Version',
+        //             detail: 'New version of the launcher is available. Go to the Settings and download!'
+        //         }).then(({ response, checkboxChecked }) => {
+        //             if (response == 0)
+        //             {
+        //                 //CreateSettingsWindow();
+        //                 settingsOpened = true;
+        //                 sw.webContents.on('did-finish-load', () => {
+        //                     autoUpdater.downloadUpdate();
+        //                 })
+        //             }
+        //         })
+        //     }
+        // })
     })
 
     ipcMain.on('read-version', (event, version) => {
@@ -477,10 +463,10 @@ app.whenReady().then(() => {
             filePath = path.join(app.getPath("userData"), '/version.txt');
             if (store.has('downloadfilePublic')) {
                 if (process.platform === "win32") {
-                    savedPath = path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/Metafluence/Metafluence.exe")
+                    savedPath = path.join(store.get('downloadfilePublic'), "/Metafluence.exe");
                 }
                 if (process.platform === "darwin") {
-                    savedPath = path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF");
+                    savedPath = path.join(store.get('downloadfilePublic'), "/Metafluence.app/Contents/MacOS/Metafluence-Mac-Shipping");
                 }
             }
         }
@@ -488,10 +474,10 @@ app.whenReady().then(() => {
             filePath = path.join(app.getPath("userData"), '/versionTest.txt');
             if (store.has('downloadfileTest')) {
                 if (process.platform === "win32") {
-                    savedPath = path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/MetafluenceTest/Metafluence.exe")
+                    savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.exe");
                 }
                 if (process.platform === "darwin") {
-                    savedPath = path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/Metafluence");
+                    savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.app/Contents/MacOS/Metafluence-Mac-Shipping");
                 }
             }
         }
@@ -525,7 +511,7 @@ app.whenReady().then(() => {
             })
         }
         else {
-            mw.webContents.send('update-status', 3);
+            mw.webContents.send('update-status', 2);
         }
     })
 
@@ -611,7 +597,7 @@ app.whenReady().then(() => {
                     }
 
                     //change window to install window
-                    mw.webContents.send('update-status', 3);
+                    mw.webContents.send('update-status', 2);
                 }
             })
 
@@ -621,34 +607,19 @@ app.whenReady().then(() => {
     ipcMain.on('button-press', (event, pressed) => {
         if (pressed == 1) //update pressed
         {
-
-            if (versionType == "public") {
-                fs.rmdir(path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/Metafluence"), {recursive: true},(err) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                })
-            }
-            else{
-                fs.rmdir(path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/MetafluenceTest"), {recursive: true},(err) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                })
-            }
             //switch to install panel
-            mw.webContents.send('update-status', 3);
+            mw.webContents.send('update-status', 2);
 
             installInProgress = true;
             mw.webContents.send('send-phase', "Downloading...");
             if (versionType == "public") {
                 if(process.platform === "win32")
                 {
-                    downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                    downloadFile("http://128.140.45.21/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
                 }
                 if(process.platform === "darwin")
                 {
-                    downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                    downloadFile("http://128.140.45.21/Mac/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
                 }
             }
             else{
@@ -671,7 +642,7 @@ app.whenReady().then(() => {
            {
                 //run exe file
                 if (process.platform === "win32") {
-                    exec(path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/Metafluence/Metafluence.exe"), [], {'detached': true});
+                    exec(path.join(store.get('downloadfilePublic'), "/Metafluence.exe"));
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
@@ -680,7 +651,7 @@ app.whenReady().then(() => {
                 //run app file for mac
 
                 if (process.platform === "darwin") {
-                    exec(path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF"), [], {'detached': true});
+                    exec(path.join(store.get('downloadfilePublic'), "/Metafluence.app/Contents/MacOS/Metafluence-Mac-Shipping"));
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
@@ -690,7 +661,7 @@ app.whenReady().then(() => {
 
                 //run exe file
                 if (process.platform === "win32") {
-                    exec(path.join(process.env.APPDATA, "../Local/Keepface Global Ltd/MetafluenceTest/Metafluence.exe"));
+                    exec(path.join(store.get('downloadfileTest'), "/Metafluence.exe"));
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
@@ -699,7 +670,7 @@ app.whenReady().then(() => {
                 //run app file for mac
 
                 if (process.platform === "darwin") {
-                    exec(path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/Metafluence"));
+                    exec(path.join(store.get('downloadfileTest'), "/Metafluence.app/Contents/MacOS/Metafluence-Mac-Shipping"));
                     setTimeout(() => {
                         app.quit();
                     }, 2000)
@@ -711,42 +682,29 @@ app.whenReady().then(() => {
 
         if (pressed == 2) { //install from mainwindow pressed
 
-            if (typeof iw === "undefined") {
-                CreateInstallWindow();
+            mw.webContents.send('choose-location');
 
-                if(versionType == "test")
-                {
-                    if(process.platform === "win32")
-                    {
-                        defaultPath = process.env.APPDATA;
-                    }
-                    if(process.platform === "darwin")
-                    {
-                        defaultPath = process.env.HOME;
-                    }
+            if (versionType == "test") {
+                if (process.platform === "win32") {
+                    defaultPath = process.env.APPDATA;
                 }
-                else
-                {
-                    if(process.platform === "win32")
-                    {
-                        defaultPath = process.env.ProgramFiles;
-                    }
-                    if(process.platform === "darwin")
-                    {
-                        defaultPath = process.env.HOME;
-                    }
+                if (process.platform === "darwin") {
+                    defaultPath = process.env.HOME;
                 }
-                installLoc = defaultPath
-                iw.webContents.on('did-finish-load', () => {
-                    iw.webContents.send('location', defaultPath);
-                })
             }
+            else {
+                if (process.platform === "win32") {
+                    defaultPath = process.env.ProgramFiles;
+                }
+                if (process.platform === "darwin") {
+                    defaultPath = process.env.HOME;
+                }
+            }
+            installLoc = defaultPath
+            mw.webContents.send('location', defaultPath);
         }
 
         if (pressed == 3) { //install from install window pressed
-            iw.close();
-            let emptyWindow;
-            iw = emptyWindow;
             installInProgress = true;
             const newPath = path.join(installLoc, "/Metafluence");
             if(fs.existsSync(newPath))
@@ -766,11 +724,11 @@ app.whenReady().then(() => {
                     if (versionType == "public") {
                         if(process.platform === "win32")
                         {
-                            downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                            downloadFile("http://128.140.45.21/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
                         }
                         if(process.platform === "darwin")
                         {
-                            downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                            downloadFile("http://128.140.45.21/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
                         }
                     }
                     else{
@@ -789,12 +747,12 @@ app.whenReady().then(() => {
     })
 
     ipcMain.on('f-button-press', (event, pressed) => {
-         dialog.showOpenDialog(iw, {
+         dialog.showOpenDialog(mw, {
             defaultPath,
             properties: ['openDirectory', 'createDirectory']
          }).then(result => {
             if (!result.canceled) {
-                iw.webContents.send('location', result.filePaths[0]);
+                mw.webContents.send('location', result.filePaths[0]);
                 installLoc = result.filePaths[0];
             }
         }).catch(err => {
@@ -802,22 +760,20 @@ app.whenReady().then(() => {
         })
     })
 
-    autoUpdater.on('checking-for-update', () => {
-        if (settingsOpened) {
-            sw.webContents.send('updated', "check");
-        }
-    })
+    // autoUpdater.on('checking-for-update', () => {
+    //     if (settingsOpened) {
+    //         sw.webContents.send('updated', "check");
+    //     }
+    // })
 
-    autoUpdater.on('update-not-available', () => {
-        if (settingsOpened) {
-            sw.webContents.send('updated', "noupdate");
-        }
-    })
+    // autoUpdater.on('update-not-available', () => {
+    //     if (settingsOpened) {
+    //         sw.webContents.send('updated', "noupdate");
+    //     }
+    // })
 
     autoUpdater.on('update-available', () => {
-        if (settingsOpened) {
-            sw.webContents.send('updated', "update");
-        }
+        mw.webContents.send('updated', "update");
     })
     
     ipcMain.on('restart-app', ()=>{
@@ -832,8 +788,8 @@ app.whenReady().then(() => {
         launcherIsUpdating = true;
         if(settingsOpened)
         {
-            let downloadText = "Downloaded: " + Math.round(progress.percent) + "%";
-            sw.webContents.send('updated', downloadText);
+            let downloadText = Math.round(progress.percent);
+            mw.webContents.send('updated', downloadText);
         }
     })
 })

@@ -1,37 +1,22 @@
 const path = require("path");
-const { app, dialog, BrowserWindow, ipcMain, ipcRenderer, shell } = require("electron");
-const { autoUpdater } = require('electron-updater');
+const {app, dialog, BrowserWindow, ipcMain, ipcRenderer, shell} = require ("electron");
 const fs = require('fs');
 const { log } = require("console");
 const Store = require("electron-store");
-const http = require("http");
+var http = require("http");
 var DecompressZip = require("decompress-zip");
-var exec = require("child_process").spawn;
-const isFirstInstanceApp = app.requestSingleInstanceLock();
+var exec = require("child_process").execFile;
 
-let mw;
-let sw;
-let cw;
-let iw;
-let installInProgress = false;
-let versiontxt;
-let versionType = "public";
+var mw;
+var sw;
+var installInProgress = false;
+var versiontxt;
+var versionType = "PUBLIC";
 const store = new Store();
-let savePathCopy;
-let fileExists = false;
-let settingsOpened = false;
-let installLoc;
-let defaultPath;
-let launcherIsUpdating = false;
+var savePathCopy;
 
-autoUpdater.autoDownload = false;
-
-if(!isFirstInstanceApp)
+function CreateMainWindow ()
 {
-    app.quit();
-}
-
-function CreateMainWindow() {
     const mainWindow = new BrowserWindow({
         title: 'Metafluence Launcher',
         width: 750,
@@ -48,13 +33,13 @@ function CreateMainWindow() {
     //remove toolbar from windows
     mainWindow.setMenuBarVisibility(false);
 
-    // mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
     mainWindow.loadFile(path.join(__dirname, '/index.html'));
 
     //Opening links in OS default browser
-    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    mainWindow.webContents.setWindowOpenHandler(({url}) =>{
         shell.openExternal(url);
-        return { action: 'deny' };
+        return {action: 'deny'};
     })
 
     mw = mainWindow;
@@ -78,54 +63,11 @@ function CreateSettingsWindow() {
     //sWindow.webContents.openDevTools();
     sWindow.loadFile(path.join(__dirname, '/settings.html'));
 
-    sw = sWindow;
+    sw=sWindow;
 
 }
 
-function CreateConnectionWindow() {
-    const cWindow = new BrowserWindow({
-        width: 328,
-        height: 210,
-        frame: false,
-        alwaysOnTop: true,
-
-        webPreferences: {
-            preload: path.join(__dirname, '/preload.js')
-        },
-        resizable: false,
-        maximizable: false
-    });
-
-    cWindow.setMenuBarVisibility(false);
-
-    //cWindow.webContents.openDevTools();
-    cWindow.loadFile(path.join(__dirname, '/connection.html'));
-
-    cw = cWindow;
-}
-
-function CreateInstallWindow() {
-    const iWindow = new BrowserWindow({
-        width: 410,
-        height: 250,
-        frame: false,
-
-        webPreferences: {
-            preload: path.join(__dirname, '/preload.js')
-        },
-        resizable: false,
-        maximizable: false
-    });
-
-    iWindow.setMenuBarVisibility(false);
-
-    //iWindow.webContents.openDevTools();
-    iWindow.loadFile(path.join(__dirname, '/install.html'));
-
-    iw = iWindow;
-}
-
-function downloadFile(webFile, filePath, savePath, stat, version) {
+function downloadFile(webFile, filePath, savePath, stat, version){
     //webfile - downloaded file
     //filePath - version.txt file path
     //savePath - download location
@@ -137,66 +79,57 @@ function downloadFile(webFile, filePath, savePath, stat, version) {
 
     const startTime = Date.now();
 
-    try {
-        var req = http.get(webFile, function (response) {
-            var file = fs.createWriteStream(savePath);
-            response.pipe(file);
-            savePathCopy = savePath;
-    
-            response.on('data', chunk => {
-                const elapsedTime = Date.now() - startTime;
-                received_bytes += chunk.length;
-                var downloadSpeed = (received_bytes / (1024 * elapsedTime / 1000)).toFixed(2);
-                var dataRate = "kBps";
-                if (downloadSpeed >= 100) {
-                    downloadSpeed = (downloadSpeed / 1024).toFixed(2);
-                    dataRate = "MBps"
-                }
-                if (!mw.isDestroyed()) {
-                    mw.webContents.send('send-progress', showProgress(received_bytes, total_bytes));
-                    mw.webContents.send('send-phase', "Downloading... " + (received_bytes / 1e9).toFixed(2) + "/" + (total_bytes / 1e9).toFixed(2) + " GB  (" + downloadSpeed + " " + dataRate + ")");
-                }
-            })
-    
-            response.on('end', () => {
-                console.log("File succesfully downloaded");
-    
-                extractFiles(filePath, savePath, stat, version);
-                mw.webContents.send('send-phase', "Extracting files...");
-    
-            });
-    
-            response.on('error', () => {
-                //response error
-                file.close();
-                if (fs.existsSync(savePath)) {
-                    fs.rmdirSync(path.join(savePath, ".."), {recursive: true},(err) => {
-                        if (err) {
-                            console.log(err);
-                        }
-                    })
-                }
-            })
+    var req = http.get(webFile, function(response) {
+        var file = fs.createWriteStream(savePath);
+        response.pipe(file);
+        savePathCopy = savePath;
+
+        response.on('data', chunk => {
+            const elapsedTime = Date.now() - startTime;
+            received_bytes += chunk.length;
+            var downloadSpeed = (received_bytes / (1024 * elapsedTime / 1000)).toFixed(2);
+            var dataRate = "kBps";
+            if (downloadSpeed >= 100) {
+                downloadSpeed = (downloadSpeed / 1024).toFixed(2);
+                dataRate = "MBps"
+            }
+            mw.webContents.send('send-progress', showProgress(received_bytes, total_bytes));
+            mw.webContents.send('send-phase', "Downloading... " + (received_bytes/1e9).toFixed(2) + "/" + (total_bytes/1e9).toFixed(2) + " GB  (" + downloadSpeed + " " + dataRate + ")");
+        })
+
+        response.on('end', () => {
+            console.log("File succesfully downloaded");
+
+            extractFiles(filePath, savePath, stat, version);
+            mw.webContents.send('send-phase', "Extracting files...");
+
         });
-    } catch (error) {
-        console.log(error);
-    }
+
+        response.on('error', () => {
+            //response error
+            if(fs.existsSync(savePath))
+            {
+                fs.unlink(savePath, (err) => {
+                    if(err){
+                        console.log("Error");
+                    }
+                })
+            }
+        })
+    });
 
     // Change the total bytes value to get progress later.
-    try {
-        req.on('response', data => {
-            total_bytes = parseInt(data.headers['content-length']);
-            mw.webContents.send('update-status', 4);
-        });
-    } catch (error) {
-        console.log(error);
-    }
+    req.on('response', data => {
+        total_bytes = parseInt(data.headers['content-length' ]);
+        mw.webContents.send('update-status', 4);
+    });
 
     req.on('error', () => {
-        if (fs.existsSync(savePath)) {
-            fs.rmdirSync(path.join(savePath, ".."), {recursive: true},(err) => {
-                if (err) {
-                    console.log(err);
+        if(fs.existsSync(savePath))
+        {
+            fs.unlink(savePath, (err) => {
+                if(err){
+                    console.log("Error");
                 }
             })
         }
@@ -213,9 +146,9 @@ function extractFiles(filePath, savePath, stat, version) {
     var unzipper = new DecompressZip(savePath);
 
     unzipper.on('error', function (err) {
-        console.log(err);
+        console.log('Caught an error');
     });
-
+    
     unzipper.on('extract', function (log) {
         console.log('Finished extracting');
 
@@ -234,22 +167,68 @@ function extractFiles(filePath, savePath, stat, version) {
                     store.set('downloadfilePublic', path.join(savePath, ".."));
                 }
             }
+
+            ipcMain.on('button-press', (event, pressed) => {
+                if (pressed == 0) 
+                {
+                    console.log("Enter pressed");
+
+                    //run exe file
+                    if (process.platform === "win32") {
+                        if (version == "test") {
+                            exec(path.join(store.get('downloadfileTest'), "/MetaF.exe"), function(err, data) {
+                                if (err) {
+                                    throw err;
+                                }
+                            });
+                        }
+                        else {
+                            exec(path.join(store.get('downloadfilePublic'), "/MetaF.exe"), function(err, data) {
+                                if (err) {
+                                    throw err;
+                                }
+                            });
+                        }
+
+                        mw.minimize();
+                    }
+                    //run app file for mac
+
+                    if (process.platform === "darwin") {
+                        if (version == "test") {
+                            exec(path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/MetaF"), function(err, data) {
+                                if (err) {
+                                    throw err;
+                                }
+                            });
+                        }
+                        else {
+                            exec(path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF"), function(err, data) {
+                                if (err) {
+                                    throw err;
+                                }
+                            });
+                        }
+                    }
+                }
+            })
         })
 
-        if (fs.existsSync(savePath)) {
+        if(fs.existsSync(savePath))
+        {
             fs.unlink(savePath, (err) => {
-                if (err) {
+                if(err){
                     console.log("Error");
                 }
             })
         }
 
     });
-
+    
     unzipper.on('progress', function (fileIndex, fileCount) {
         mw.webContents.send('send-progress', showProgress(fileIndex, fileCount));
     });
-
+    
     unzipper.extract({
         path: path.join(savePath, ".."),
         filter: function (file) {
@@ -258,50 +237,14 @@ function extractFiles(filePath, savePath, stat, version) {
     });
 }
 
-function checkInternetConnection() {
-    http.get('http://www.google.com', (res) => {
-      if (typeof cw !== "undefined" && !cw.isDestroyed()) {
-        cw.close();
-        let emptyWindow;
-        cw = emptyWindow;
-        if(store.has('lastSelectedVersion')) {
-            mw.webContents.send('fetch-version', store.get('lastSelectedVersion'), process.platform);
-        }
-        else{
-            mw.webContents.send('fetch-version', "public", process.platform);
-        }
-      }
-      if (!mw.isDestroyed()) {
-            mw.setIgnoreMouseEvents(false);
-      }
-    }).on('error', (err) => {
-        if (typeof cw === "undefined") {
-            if (!mw.isDestroyed() && !mw.isMinimized() && mw.isFocused()) {
-                CreateConnectionWindow();
-                mw.setIgnoreMouseEvents(true);
-            }
-        }
-
-        if(installInProgress)
-        {
-            if (fs.existsSync(savePathCopy)) {
-                fs.rmdirSync(path.join(savePathCopy, ".."), {recursive: true},(err) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                })
-            }
-            installInProgress = false;
-        }
-    });
-}
-
 app.on('before-quit', () => {
-    if (installInProgress) {
-        if (fs.existsSync(savePathCopy)) {
-            fs.rmdirSync(path.join(savePathCopy, ".."), {recursive: true},(err) => {
-                if (err) {
-                    console.log(err);
+    if(installInProgress)
+    {
+        if(fs.existsSync(savePathCopy))
+        {
+            fs.unlink(savePathCopy, (err) => {
+                if(err){
+                    console.log("Error");
                 }
             })
         }
@@ -310,85 +253,54 @@ app.on('before-quit', () => {
 
 app.whenReady().then(() => {
 
-    //get default path for installation - currently user's program files
-    if(process.platform === "win32")
-    {
-        defaultPath = process.env.ProgramFiles;
-    }
-    if(process.platform === "darwin")
-    {
-        defaultPath = process.env.HOME;
-    }
-    installLoc = defaultPath;
-
-    if (typeof mw === "undefined") {
-        CreateMainWindow();
-    }
-
-    let connectionInterval = setInterval(checkInternetConnection, 8000);
-
-    ipcMain.on('connection', (event, pressed) => {
-        if (pressed == 0) {
-            cw.close();
-            let emptyWindow;
-            cw = emptyWindow;
-            //checkInternetConnection();
-        }
-        if (pressed == 1) {
-            app.quit();
-        }
-    })
+    CreateMainWindow();
 
     ipcMain.on('close-pressed', (event, button) => {
-        if (button == 1) {
-            if (installInProgress) {
-                dialog.showMessageBox({
-                    type: 'warning',
-                    buttons: ['Back', 'Yes'],
-                    cancelId: 1,
-                    defaultId: 0,
-                    title: 'Warning',
-                    detail: 'Installation is in progress. Are you sure?'
-                }).then(({ response, checkboxChecked }) => {
-                    console.log(`response: ${response}`)
-                    if (response) {
-                        app.quit()
-                    }
-                })
-            }
-            else {
-                app.quit();
-            }
+        if(button == 1)
+        {
+            app.quit();
         }
         if (button == 0) {
             mw.minimize();
         }
-        if (button == 2) {
-            sw.close();
-            settingsOpened = false;
-        }
-        if (button == 3) 
+        if(button == 2)
         {
-            iw.close();
-            let emptyWindow;
-            iw = emptyWindow;
+            sw.close();
+        }
+    })
+
+    mw.on('close', e => {
+        if (installInProgress) {
+            e.preventDefault()
+            dialog.showMessageBox({
+            type: 'warning',
+            buttons: ['Back', 'Yes'],
+            cancelId: 1,
+            defaultId: 0,
+            title: 'Warning',
+            detail: 'Installation is in progress. Are you sure?'
+            }).then(({ response, checkboxChecked }) => {
+            console.log(`response: ${response}`)
+                if (response) {
+                    mw.destroy()
+                    app.quit()
+                }
+            })
+        }
+        else {
+            mw.destroy();
+            app.quit();
         }
     })
 
     ipcMain.on('s-button-press', (event, pressed) => {
         if (pressed == 0 && !installInProgress) {
-            if (!settingsOpened) {
-                CreateSettingsWindow();
-                settingsOpened = true;
-                sw.webContents.on('did-finish-load', () => {
-                    sw.webContents.send('send-version', versionType, process.platform);
-                    if (!launcherIsUpdating) {
-                        autoUpdater.checkForUpdates();
-                    }
-                })
-            }
+            CreateSettingsWindow();
+            sw.webContents.on('did-finish-load', () => {
+                sw.webContents.send('send-version', versionType);
+            })
         }
-        else {
+        else{
             dialog.showMessageBox({
                 type: 'warning',
                 buttons: ['OKAY'],
@@ -396,409 +308,335 @@ app.whenReady().then(() => {
                 defaultId: 0,
                 title: 'Warning',
                 detail: 'Settings is not available during a download'
-            }).then(({ response, checkboxChecked }) => {
-
-            })
+                }).then(({ response, checkboxChecked }) => {
+                
+                })
         }
     })
 
-    mw.webContents.on('did-finish-load', () => {
-        if(store.has('lastSelectedVersion')) {
-            mw.webContents.send('fetch-version', store.get('lastSelectedVersion'), process.platform);
-        }
-        else{
-            mw.webContents.send('fetch-version', "public", process.platform);
-        }
 
-        mw.on("minimize", () => {
-            clearInterval(connectionInterval);
+    ipcMain.on('version-selected', (event, option) => {
+        ipcMain.removeAllListeners('read-version');
+        ipcMain.removeAllListeners('button-press');
+        ipcMain.removeAllListeners('uninstall-request');
+
+        ipcMain.on('read-version', (event, version) => {
+            versiontxt = version;
+            console.log(versiontxt);
+
+            mw.webContents.send('version-text-changed', version, option);
         })
 
-        mw.on("restore", () => {
-            connectionInterval = setInterval(checkInternetConnection, 8000);
-        })
+        if(option == "public") {
+            //public is selected
+            versionType = "PUBLIC"
+            const filePath = path.join(app.getPath("userData"), '/version.txt');
 
-        autoUpdater.checkForUpdates();
-        autoUpdater.on('update-available', () => {
-            if (!settingsOpened) {
-                dialog.showMessageBox({
-                    type: 'info',
-                    buttons: ['DOWNLOAD NOW'],
-                    cancelId: 1,
-                    title: 'New Version',
-                    detail: 'New version of the launcher is available. Go to the Settings and download!'
-                }).then(({ response, checkboxChecked }) => {
-                    if (response == 0)
-                    {
-                        CreateSettingsWindow();
-                        settingsOpened = true;
-                        sw.webContents.on('did-finish-load', () => {
-                            autoUpdater.downloadUpdate();
-                        })
+            if(fs.existsSync(filePath)){
+                console.log('File exists');
+
+                //listen for checkUpdate request
+                ipcMain.on('update-check-request', (event, request) => {
+                    mw.webContents.send('fetch-version', "public");
+                })
+                
+
+                //listen for uninstall request
+                ipcMain.on('uninstall-request', (event, request) => {
+                    if (request == 1) {
+                        //create confirmation screen
+                        dialog.showMessageBox({
+                            type: 'warning',
+                            buttons: ['Back', 'Yes'],
+                            cancelId: 1,
+                            defaultId: 0,
+                            title: 'Warning',
+                            detail: 'Program is about to be uninstalled. Are you sure?'
+                            }).then(({ response, checkboxChecked }) => {
+                            console.log(`responsePublic: ${response}`)
+                                if (response) {
+                                    //delete corresponding files for public
+
+                                    //removing version saving loc
+                                    fs.unlink(filePath, (err) => {
+                                        if(err){
+                                            console.log("Error");
+                                        }
+                                    })
+                                    
+                                    //removing app download folder
+                                    if (process.platform === "darwin") {
+                                        fs.unlink(path.join(store.get('downloadfilePublic'), "/MetaF.app"), (err) => {
+                                            if(err){
+                                                console.log(err);
+                                            }
+                                        })   
+                                    }
+
+                                    if (process.platform === "win32") {
+                                        fs.unlink(path.join(store.get('downloadfilePublic'), "/MetaF.exe"), (err) => {
+                                            if(err){
+                                                console.log(err);
+                                            }
+                                        })
+                                    }
+
+                                    //change window to install window
+                                    mw.webContents.send('update-status', 3);
+
+                                    // ipcMain.on('button-press', (event, pressed) => {
+                                    //     if (pressed == 2) 
+                                    //     {
+                                    //         dialog.showOpenDialog(mw, {
+                                    //             //defaultPath: "Desktop",
+                                    //             properties: ['openDirectory']
+                                    //         }).then(result => {
+                                    //             if (!result.canceled) {
+                                    //                 installInProgress = true;
+                                    //                 downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(result.filePaths[0], "/Version.zip"), 0, "public");
+                                    //                 //console.log(result.filePaths[0]);
+                                    //             }
+                                    //         }).catch(err => {
+                                    //             console.log(err);
+                                    //         })
+                                    //     }
+                                    // })
+                                }
+                            })
                     }
                 })
-            }
-        })
-    })
 
-    ipcMain.on('read-version', (event, version) => {
-        versiontxt = version;
-        console.log(versiontxt);
-    })
+                //check if the version is new
+                ipcMain.on('read-version', (event, version) => {
+                    fs.readFile(filePath, 'utf-8', (err, data) => {
+                        if (err) throw err;
 
-    let filePath;
-    let savedPath;
-    ipcMain.on('version-selected', (event, option) => {
-        versionType = option;
-        store.set('lastSelectedVersion', option);
-        mw.webContents.send('version-text-changed', versiontxt, option);
+                        if(data!=version)
+                        {
+                            mw.webContents.send('update-status', 1);
 
-        if (versionType == "public") {
-            filePath = path.join(app.getPath("userData"), '/version.txt');
-            if (store.has('downloadfilePublic')) {
-                if (process.platform === "win32") {
-                    savedPath = path.join(store.get('downloadfilePublic'), "/Metafluence.exe");
-                }
-                if (process.platform === "darwin") {
-                    savedPath = path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF");
-                }
-            }
-        }
-        else {
-            filePath = path.join(app.getPath("userData"), '/versionTest.txt');
-            if (store.has('downloadfileTest')) {
-                if (process.platform === "win32") {
-                    savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.exe");
-                }
-                if (process.platform === "darwin") {
-                    savedPath = path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/Metafluence");
-                }
-            }
-        }
+                            //update
 
-        if (fs.existsSync(filePath)) {
-            if (typeof savedPath !== "undefined" && fs.existsSync(savedPath)) {
-                fileExists = true;
-            }
-            else {
-                fileExists = false;
-            }
-        }
-        else {
-            fileExists = false;
-        }
+                            ipcMain.once('button-press', (event, pressed) => {
+                                if (pressed == 1) 
+                                {
+                                    //switch to install panel
+                                    mw.webContents.send('update-status', 3);
 
-        if (fileExists) {
-            fs.readFile(filePath, 'utf-8', (err, data) => {
-                if (err) throw err;
+                                    installInProgress = true;
+                                    mw.webContents.send('send-phase', "Downloading...");
+                                    downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                                } 
+                            })
+                        }
+                        else
+                        {
+                            mw.webContents.send('update-status', 0);
 
-                console.log("data", data);
-                console.log("version", versiontxt);
-                if (data != versiontxt) {
-                    //switch to update window
-                    mw.webContents.send('update-status', 1);
-                }
-                else {
-                    //switch to launch window
-                    mw.webContents.send('update-status', 0);
-                }
-            })
-        }
-        else {
-            mw.webContents.send('update-status', 3);
-        }
-    })
+                            ipcMain.on('button-press', (event, pressed) => {
+                                if (pressed == 0) 
+                                {
+                                    console.log("Enter pressed");
 
-    //listen for check for updates request
-    ipcMain.on('update-check-request', (event, request) => {
+                                    //run exe file
+                                    if (process.platform === "win32") {
+                                        exec(path.join(store.get('downloadfilePublic'), "/MetaF.exe"), function(err, data) {
+                                            if (err) {
+                                                throw err;
+                                            }
+                                        });
 
-        if (request == 1) {
-            mw.webContents.send('fetch-version', versionType, process.platform);
-            console.log("checking for", versionType);
-        }
-    })
+                                        mw.minimize();
+                                    }
 
-    //listen for uninstall request
-    ipcMain.on('uninstall-request', (event, request) => {
-        if (request == 1) {
-            //create confirmation screen
-            dialog.showMessageBox({
-                type: 'warning',
-                buttons: ['Back', 'Yes'],
-                cancelId: 1,
-                defaultId: 0,
-                title: 'Warning',
-                detail: 'Program is about to be uninstalled. Are you sure?'
-            }).then(({ response, checkboxChecked }) => {
-                console.log(`responsePublic: ${response}`)
-                if (response) {
-                    //delete corresponding files
+                                    //run app file for mac
 
-                    //removing version saving loc
-                    fs.unlink(filePath, (err) => {
-                        if (err) {
-                            console.log("Error");
+                                    if (process.platform === "darwin") {
+                                        exec(path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF"), function(err, data) {
+                                            if (err) {
+                                                throw err;
+                                            }
+                                        });
+                                    }
+                                }
+                            })
                         }
                     })
 
-                    if (versionType == "public") {
-
-                        //removing app download folder for Public
-                        if (process.platform === "darwin") {
-                            fs.rmdir(store.get('downloadfilePublic'), {recursive: true},(err) => {
-                                if (err) {
-                                    console.log(err);
-                                }
-                            })
-                        }
-
-                        if (process.platform === "win32") {
-                            fs.rmdir(store.get('downloadfilePublic'), {recursive: true},(err) => {
-                                if (err) {
-                                    console.log(err);
-                                }
-                            })
-                        }
-                    }
-                    else{
-
-                        //removing app download folder for Test
-                        if (process.platform === "darwin") {
-                            // fs.rmdir(path.join(store.get('downloadfileTest'), "/MetaF.app"), {recursive: true},(err) => {
-                            //     if (err) {
-                            //         console.log(err);
-                            //     }
-                            // })
-                            fs.rmdir(store.get('downloadfileTest'), {recursive: true},(err) => {
-                                if (err) {
-                                    console.log(err);
-                                }
-                            })
-                        }
-
-                        if (process.platform === "win32") {
-                            // fs.unlink(path.join(store.get('downloadfileTest'), "/MetaF.exe"), (err) => {
-                            //     if (err) {
-                            //         console.log(err);
-                            //     }
-                            // })
-                            fs.rmdir(store.get('downloadfileTest'), {recursive: true},(err) => {
-                                if (err) {
-                                    console.log(err);
-                                }
-                            })
-                        }
-                    }
-
-                    //change window to install window
+                })
+            } else {
+                ipcMain.on('read-version', (event, version) => {
+                    //switch to install panel
                     mw.webContents.send('update-status', 3);
-                }
-            })
 
-        }
-    })
+                    //download
+                    ipcMain.on('button-press', (event, pressed) => {
+                        if (pressed == 2) 
+                        {
+                            dialog.showOpenDialog(mw, {
+                                //defaultPath: "Desktop",
+                                properties: ['openDirectory', 'createDirectory']
+                            }).then(result => {
+                                if (!result.canceled) {
+                                    installInProgress = true;
+                                    downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(result.filePaths[0], "/Version.zip"), 0, "public");
+                                    //console.log(result.filePaths[0]);
+                                }
+                            }).catch(err => {
+                                console.log(err);
+                            })
+                        }
+                    })
 
-    ipcMain.on('button-press', (event, pressed) => {
-        if (pressed == 1) //update pressed
-        {
-            //switch to install panel
-            mw.webContents.send('update-status', 3);
-
-            installInProgress = true;
-            mw.webContents.send('send-phase', "Downloading...");
-            if (versionType == "public") {
-                if(process.platform === "win32")
-                {
-                    downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
-                }
-                if(process.platform === "darwin")
-                {
-                    downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
-                }
-            }
-            else{
-                if(process.platform === "win32")
-                {
-                    downloadFile("http://94.130.76.49/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
-                }
-                if(process.platform === "darwin")
-                {
-                    downloadFile("http://94.130.76.49/Mac/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
-                }
-            }
-        }
-
-        if (pressed == 0) //enter pressed
-        {
-            console.log("Enter pressed");
-
-           if (versionType == "public") 
-           {
-                //run exe file
-                if (process.platform === "win32") {
-                    exec(path.join(store.get('downloadfilePublic'), "/Metafluence.exe"));
-                    setTimeout(() => {
-                        app.quit();
-                    }, 2000)
-                }
-
-                //run app file for mac
-
-                if (process.platform === "darwin") {
-                    exec(path.join(store.get('downloadfilePublic'), "/MetaF.app/Contents/MacOS/MetaF"));
-                    setTimeout(() => {
-                        app.quit();
-                    }, 2000)
-                }
-            }
-            else{
-
-                //run exe file
-                if (process.platform === "win32") {
-                    exec(path.join(store.get('downloadfileTest'), "/Metafluence.exe"));
-                    setTimeout(() => {
-                        app.quit();
-                    }, 2000)
-                }
-
-                //run app file for mac
-
-                if (process.platform === "darwin") {
-                    exec(path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/Metafluence"));
-                    setTimeout(() => {
-                        app.quit();
-                    }, 2000)
-                }
-            }
-
-            mw.minimize();
-        }
-
-        if (pressed == 2) { //install from mainwindow pressed
-
-            if (typeof iw === "undefined") {
-                CreateInstallWindow();
-
-                if(versionType == "test")
-                {
-                    if(process.platform === "win32")
-                    {
-                        defaultPath = process.env.APPDATA;
-                    }
-                    if(process.platform === "darwin")
-                    {
-                        defaultPath = process.env.HOME;
-                    }
-                }
-                else
-                {
-                    if(process.platform === "win32")
-                    {
-                        defaultPath = process.env.ProgramFiles;
-                    }
-                    if(process.platform === "darwin")
-                    {
-                        defaultPath = process.env.HOME;
-                    }
-                }
-                installLoc = defaultPath
-                iw.webContents.on('did-finish-load', () => {
-                    iw.webContents.send('location', defaultPath);
                 })
             }
         }
+        else {
+            //test is selected
 
-        if (pressed == 3) { //install from install window pressed
-            iw.close();
-            let emptyWindow;
-            iw = emptyWindow;
-            installInProgress = true;
-            const newPath = path.join(installLoc, "/Metafluence");
-            if(fs.existsSync(newPath))
-            {
-                fs.rmdirSync(newPath, {recursive: true},(err) => {
-                    if (err) {
-                        console.log(err);
+            versionType = "TEST";
+            const filePath = path.join(app.getPath("userData"), '/versionTest.txt');
+
+            if(fs.existsSync(filePath)){
+                console.log('File exists');
+
+                //listen for checkUpdate request
+                ipcMain.on('update-check-request', (event, request) => {
+                    mw.webContents.send('fetch-version', "test");
+                })
+
+                //listen for uninstall request
+                ipcMain.on('uninstall-request', (event, request) => {
+                    if (request == 1) {
+                        //create confirmation screen
+                        dialog.showMessageBox({
+                            type: 'warning',
+                            buttons: ['Back', 'Yes'],
+                            cancelId: 1,
+                            defaultId: 0,
+                            title: 'Warning',
+                            detail: 'Program is about to be uninstalled. Are you sure?'
+                            }).then(({ response, checkboxChecked }) => {
+                            console.log(`response: ${response}`)
+                                if (response) {
+                                    //delete corresponding files for public
+
+                                    //removing version saving loc
+                                    fs.unlink(filePath, (err) => {
+                                        if(err){
+                                            console.log("Error");
+                                        }
+                                    })
+                                    
+                                    //removing app download folder
+                                    if (process.platform === "darwin") {
+                                        fs.unlink(path.join(store.get('downloadfilePublic'), "/MetaF.app"), (err) => {
+                                            if(err){
+                                                console.log(err);
+                                            }
+                                        })   
+                                    }
+
+                                    if (process.platform === "win32") {
+                                        fs.unlink(path.join(store.get('downloadfilePublic'), "/MetaF.exe"), (err) => {
+                                            if(err){
+                                                console.log(err);
+                                            }
+                                        })
+                                    }
+
+                                    //change window to install window
+                                    mw.webContents.send('update-status', 3);
+
+                                }
+                            })
                     }
                 })
+
+                //check if the version is new
+                ipcMain.on('read-version', (event, version) => {
+                    fs.readFile(filePath, 'utf-8', (err, data) => {
+                        if (err) throw err;
+
+                        if(data!=version)
+                        {
+                            mw.webContents.send('update-status', 1);
+
+                            //update
+
+                            ipcMain.once('button-press', (event, pressed) => {
+                                if (pressed == 1) 
+                                {
+                                    //switch to install panel
+                                    mw.webContents.send('update-status', 3);
+
+                                    installInProgress = true;
+                                    mw.webContents.send('send-phase', "Downloading...");
+                                    downloadFile("http://23.88.99.110/Mac/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
+                                } 
+                            })
+                        }
+                        else
+                        {
+                            mw.webContents.send('update-status', 0);
+
+                            ipcMain.on('button-press', (event, pressed) => {
+                                if (pressed == 0) 
+                                {
+                                    console.log("Enter pressed");
+
+                                    //run exe file
+                                    if (process.platform === "win32") {
+                                        exec(path.join(store.get('downloadfileTest'), "/MetaF.exe"), function(err, data) {
+                                            if (err) {
+                                                throw err;
+                                            }
+                                        });
+
+                                        mw.minimize();
+                                    }
+
+                                    //run app file for mac
+
+                                    if (process.platform === "darwin") {
+                                        exec(path.join(store.get('downloadfileTest'), "/MetaF.app/Contents/MacOS/MetaF"), function(err, data) {
+                                            if (err) {
+                                                throw err;
+                                            }
+                                        });
+                                    }
+                                }
+                            })
+                        }
+                    })
+
+                })
+            } else {
+                ipcMain.on('read-version', (event, version) => {
+                    //switch to install panel
+                    mw.webContents.send('update-status', 3);
+
+                    //download
+                    ipcMain.on('button-press', (event, pressed) => {
+                        if (pressed == 2) 
+                        {
+                            dialog.showOpenDialog(mw, {
+                                //defaultPath: "Desktop",
+                                properties: ['openDirectory', 'createDirectory']
+                            }).then(result => {
+                                if (!result.canceled) {
+                                    installInProgress = true;
+                                    downloadFile("http://23.88.99.110/Mac/Version.zip", filePath, path.join(result.filePaths[0], "/Version.zip"), 0, "test");
+                                    //console.log(result.filePaths[0]);
+                                }
+                            }).catch(err => {
+                                console.log(err);
+                            })
+                        }
+                    })
+
+                })
             }
-            fs.mkdir(newPath, (err) => {
-                if(err)
-                {
-                    console.log("error at creating Metafluence folder");
-                }
-                else{
-                    if (versionType == "public") {
-                        if(process.platform === "win32")
-                        {
-                            downloadFile("http://142.132.173.99/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
-                        }
-                        if(process.platform === "darwin")
-                        {
-                            downloadFile("http://142.132.173.99/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
-                        }
-                    }
-                    else{
-                        if(process.platform === "win32")
-                        {
-                            downloadFile("http://94.130.76.49/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
-                        }
-                        if(process.platform === "darwin")
-                        {
-                            downloadFile("http://94.130.76.49/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
-                        }
-                    }
-                }
-            })
-        }
-    })
-
-    ipcMain.on('f-button-press', (event, pressed) => {
-         dialog.showOpenDialog(iw, {
-            defaultPath,
-            properties: ['openDirectory', 'createDirectory']
-         }).then(result => {
-            if (!result.canceled) {
-                iw.webContents.send('location', result.filePaths[0]);
-                installLoc = result.filePaths[0];
-            }
-        }).catch(err => {
-            console.log(err);
-        })
-    })
-
-    autoUpdater.on('checking-for-update', () => {
-        if (settingsOpened) {
-            sw.webContents.send('updated', "check");
-        }
-    })
-
-    autoUpdater.on('update-not-available', () => {
-        if (settingsOpened) {
-            sw.webContents.send('updated', "noupdate");
-        }
-    })
-
-    autoUpdater.on('update-available', () => {
-        if (settingsOpened) {
-            sw.webContents.send('updated', "update");
-        }
-    })
-    
-    ipcMain.on('restart-app', ()=>{
-        autoUpdater.downloadUpdate();
-    })
-
-    autoUpdater.on(('update-downloaded'), () => {
-        autoUpdater.quitAndInstall();
-    })
-
-    autoUpdater.on(('download-progress'), (progress) => {
-        launcherIsUpdating = true;
-        if(settingsOpened)
-        {
-            let downloadText = "Downloaded: " + Math.round(progress.percent) + "%";
-            sw.webContents.send('updated', downloadText);
         }
     })
 })
