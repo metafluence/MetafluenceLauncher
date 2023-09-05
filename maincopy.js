@@ -645,16 +645,16 @@ app.whenReady().then(() => {
                     exec(path.join(store.get('downloadfilePublic'), "/Metafluence.exe"), [], {'detached': true});
                     setTimeout(() => {
                         app.quit();
-                    }, 2000)
+                    }, 5000)
                 }
 
                 //run app file for mac
 
                 if (process.platform === "darwin") {
-                    exec(path.join(store.get('downloadfilePublic'), "/Metafluence.app/Contents/MacOS/Metafluence-Mac-Shipping"));
+                    exec(path.join(store.get('downloadfilePublic'), "/Metafluence-Mac-Shipping.app/Contents/MacOS/Metafluence-Mac-Shipping"), [], {'detached': true});
                     setTimeout(() => {
                         app.quit();
-                    }, 2000)
+                    }, 5000)
                 }
             }
             else{
@@ -664,16 +664,16 @@ app.whenReady().then(() => {
                     exec(path.join(store.get('downloadfileTest'), "/Metafluence.exe"), [], {'detached': true});
                     setTimeout(() => {
                         app.quit();
-                    }, 2000)
+                    }, 5000)
                 }
 
                 //run app file for mac
 
                 if (process.platform === "darwin") {
-                    exec(path.join(store.get('downloadfileTest'), "/Metafluence.app/Contents/MacOS/Metafluence-Mac-Shipping"));
+                    exec(path.join(store.get('downloadfileTest'), "/Metafluence.app/Contents/MacOS/Metafluence"), [], {'detached': true});
                     setTimeout(() => {
                         app.quit();
-                    }, 2000)
+                    }, 5000)
                 }
             }
 
@@ -706,7 +706,14 @@ app.whenReady().then(() => {
 
         if (pressed == 3) { //install from install window pressed
             installInProgress = true;
-            const newPath = path.join(installLoc, "/Metafluence");
+            let newPath;
+            if(versionType == "test")
+            {
+                newPath = path.join(installLoc, "/Metafluence/TestVersion");
+            }
+            else{
+                newPath = path.join(installLoc, "/Metafluence/PublicVersion");
+            }
             if(fs.existsSync(newPath))
             {
                 fs.rmdirSync(newPath, {recursive: true},(err) => {
@@ -715,7 +722,7 @@ app.whenReady().then(() => {
                     }
                 })
             }
-            fs.mkdir(newPath, (err) => {
+            fs.mkdir(newPath, {recursive: true}, (err) => {
                 if(err)
                 {
                     console.log("error at creating Metafluence folder");
