@@ -12,6 +12,20 @@ $(document).ready(function () {
     }
   }
 
+  let link;
+  function goBtnClickHandler()
+  {
+    window.open(link, '_blank');
+    setTimeout(function () {
+      for (let index = 0; index < modalContents.length; index++) {
+        if (modalContents[index].hasAttribute("data-active")) {
+          delete modalContents[index].dataset.active;
+        }
+      }
+      modalContents[2].dataset.active = true;
+    }, 600);
+  }
+
   function FetchEventData(eventID) {
     var container = document.getElementsByClassName("event-modal_info");
     var url = "https://app.metafluence.com/api/v1/public/api/_web3/event/" + eventID;
@@ -55,17 +69,8 @@ $(document).ready(function () {
 
         //update want to go button
         let goBtn = document.getElementById("goBtn");
-        goBtn.addEventListener("click", function () {
-          window.open('https://app.metafluence.com/event/' + eventID, '_blank');
-          setTimeout(function () {
-            for (let index = 0; index < modalContents.length; index++) {
-              if (modalContents[index].hasAttribute("data-active")) {
-                delete modalContents[index].dataset.active;
-              }
-            }
-            modalContents[2].dataset.active = true;
-          }, 600);
-        }, {once: true});
+        link = 'https://app.metafluence.com/event/' + eventID;
+        goBtn.addEventListener("click", goBtnClickHandler, {once: true});
 
         for (let index = 0; index < modalContents.length; index++) {
           if (modalContents[index].hasAttribute("data-active")) {
@@ -173,6 +178,7 @@ $(document).ready(function () {
   const eventCloseBtn = document.getElementById("event-close");
 
   eventCloseBtn.addEventListener("click", function () {
+    goBtn.removeEventListener("click", goBtnClickHandler);
     setTimeout(function () {
       for (let index = 0; index < modalContents.length; index++) {
         if (modalContents[index].hasAttribute("data-active")) {
