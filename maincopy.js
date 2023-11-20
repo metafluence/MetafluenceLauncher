@@ -10,20 +10,16 @@ var exec = require("child_process").spawn;
 const isFirstInstanceApp = app.requestSingleInstanceLock();
 
 let mw;
-// let sw;
-// let cw;
-// let iw;
 let installInProgress = false;
 let versiontxt;
 let versionType = "public";
 const store = new Store();
 let savePathCopy;
 let fileExists = false;
-let settingsOpened = false;
 let installLoc;
 let defaultPath;
-let launcherIsUpdating = false;
 let connectionLost = false;
+let isUpdate = false;
 
 autoUpdater.autoDownload = false;
 
@@ -35,8 +31,8 @@ if(!isFirstInstanceApp)
 function CreateMainWindow() {
     const mainWindow = new BrowserWindow({
         title: 'Metafluence Launcher',
-        width: 750,
-        height: 550,
+        width: 900,
+        height: 600,
         frame: false,
 
         webPreferences: {
@@ -60,71 +56,6 @@ function CreateMainWindow() {
 
     mw = mainWindow;
 }
-
-// function CreateSettingsWindow() {
-//     const sWindow = new BrowserWindow({
-//         width: 328,
-//         height: 246,
-//         frame: false,
-
-//         webPreferences: {
-//             preload: path.join(__dirname, '/preload.js')
-//         },
-//         resizable: false,
-//         maximizable: false
-//     });
-
-//     sWindow.setMenuBarVisibility(false);
-
-//     //sWindow.webContents.openDevTools();
-//     sWindow.loadFile(path.join(__dirname, '/settings.html'));
-
-//     sw = sWindow;
-
-// }
-
-// function CreateConnectionWindow() {
-//     const cWindow = new BrowserWindow({
-//         width: 328,
-//         height: 210,
-//         frame: false,
-//         alwaysOnTop: true,
-
-//         webPreferences: {
-//             preload: path.join(__dirname, '/preload.js')
-//         },
-//         resizable: false,
-//         maximizable: false
-//     });
-
-//     cWindow.setMenuBarVisibility(false);
-
-//     //cWindow.webContents.openDevTools();
-//     cWindow.loadFile(path.join(__dirname, '/connection.html'));
-
-//     cw = cWindow;
-// }
-
-// function CreateInstallWindow() {
-//     const iWindow = new BrowserWindow({
-//         width: 410,
-//         height: 250,
-//         frame: false,
-
-//         webPreferences: {
-//             preload: path.join(__dirname, '/preload.js')
-//         },
-//         resizable: false,
-//         maximizable: false
-//     });
-
-//     iWindow.setMenuBarVisibility(false);
-
-//     //iWindow.webContents.openDevTools();
-//     iWindow.loadFile(path.join(__dirname, '/install.html'));
-
-//     iw = iWindow;
-// }
 
 function downloadFile(webFile, filePath, savePath, stat, version) {
     //webfile - downloaded file
@@ -225,6 +156,7 @@ function extractFiles(filePath, savePath, stat, version) {
             console.log('Saved');
             mw.webContents.send('update-status', 0);
             installInProgress = false;
+            isUpdate = false;
             savePathCopy = "";
 
             if (stat == 0) {
@@ -282,7 +214,7 @@ function checkInternetConnection() {
             }
         }
 
-        if(installInProgress)
+        if(installInProgress & !isUpdate)
         {
             if (fs.existsSync(savePathCopy)) {
                 fs.rmdirSync(path.join(savePathCopy, ".."), {recursive: true},(err) => {
@@ -292,6 +224,7 @@ function checkInternetConnection() {
                 })
             }
             installInProgress = false;
+            isUpdate = false;
         }
 
         return false;
@@ -299,7 +232,7 @@ function checkInternetConnection() {
 }
 
 app.on('before-quit', () => {
-    if (installInProgress) {
+    if (installInProgress & !isUpdate) {
         if (fs.existsSync(savePathCopy)) {
             fs.rmdirSync(path.join(savePathCopy, ".."), {recursive: true},(err) => {
                 if (err) {
@@ -307,6 +240,15 @@ app.on('before-quit', () => {
                 }
             })
         }
+    }
+
+    if (isUpdate)
+    {
+        fs.unlink(savePathCopy, (err) => {
+            if (err) {
+                console.error("Error while removing the file!");
+            }
+        })
     }
 })
 
@@ -362,44 +304,7 @@ app.whenReady().then(() => {
         if (button == 0) {
             mw.minimize();
         }
-        // if (button == 2) {
-        //     sw.close();
-        //     settingsOpened = false;
-        // }
-        // if (button == 3) 
-        // {
-        //     iw.close();
-        //     let emptyWindow;
-        //     iw = emptyWindow;
-        // }
     })
-
-    // ipcMain.on('s-button-press', (event, pressed) => {
-    //     if (pressed == 0 && !installInProgress) {
-    //         if (!settingsOpened) {
-    //             //CreateSettingsWindow();
-    //             settingsOpened = true;
-    //             sw.webContents.on('did-finish-load', () => {
-    //                 sw.webContents.send('send-version', versionType, process.platform);
-    //                 if (!launcherIsUpdating) {
-    //                     autoUpdater.checkForUpdates();
-    //                 }
-    //             })
-    //         }
-    //     }
-    //     else {
-    //         dialog.showMessageBox({
-    //             type: 'warning',
-    //             buttons: ['OKAY'],
-    //             cancelId: 0,
-    //             defaultId: 0,
-    //             title: 'Warning',
-    //             detail: 'Settings is not available during a download'
-    //         }).then(({ response, checkboxChecked }) => {
-
-    //         })
-    //     }
-    // })
 
     mw.webContents.on('did-finish-load', () => {
 
@@ -466,7 +371,7 @@ app.whenReady().then(() => {
                     savedPath = path.join(store.get('downloadfilePublic'), "/Metafluence.exe");
                 }
                 if (process.platform === "darwin") {
-                    savedPath = path.join(store.get('downloadfilePublic'), "/Metafluence.app/Contents/MacOS/Metafluence-Mac-Shipping");
+                    savedPath = path.join(store.get('downloadfilePublic'), "/Metafluence-Mac-Shipping.app/Contents/MacOS/Metafluence-Mac-Shipping");
                 }
             }
         }
@@ -477,7 +382,7 @@ app.whenReady().then(() => {
                     savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.exe");
                 }
                 if (process.platform === "darwin") {
-                    savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.app/Contents/MacOS/Metafluence-Mac-Shipping");
+                    savedPath = path.join(store.get('downloadfileTest'), "/Metafluence.app/Contents/MacOS/Metafluence");
                 }
             }
         }
@@ -570,11 +475,6 @@ app.whenReady().then(() => {
 
                         //removing app download folder for Test
                         if (process.platform === "darwin") {
-                            // fs.rmdir(path.join(store.get('downloadfileTest'), "/MetaF.app"), {recursive: true},(err) => {
-                            //     if (err) {
-                            //         console.log(err);
-                            //     }
-                            // })
                             fs.rmdir(store.get('downloadfileTest'), {recursive: true},(err) => {
                                 if (err) {
                                     console.log(err);
@@ -583,11 +483,6 @@ app.whenReady().then(() => {
                         }
 
                         if (process.platform === "win32") {
-                            // fs.unlink(path.join(store.get('downloadfileTest'), "/MetaF.exe"), (err) => {
-                            //     if (err) {
-                            //         console.log(err);
-                            //     }
-                            // })
                             fs.rmdir(store.get('downloadfileTest'), {recursive: true},(err) => {
                                 if (err) {
                                     console.log(err);
@@ -611,6 +506,7 @@ app.whenReady().then(() => {
             mw.webContents.send('update-status', 2);
 
             installInProgress = true;
+            isUpdate = true;
             mw.webContents.send('send-phase', "Downloading...");
             if (versionType == "public") {
                 if(process.platform === "win32")
@@ -706,13 +602,25 @@ app.whenReady().then(() => {
 
         if (pressed == 3) { //install from install window pressed
             installInProgress = true;
+            isUpdate = false;
             let newPath;
+
+            //check whether chosen location already contains Metafluence folder at the end of the path
+            let joinPath = "";
+            const folderSegments = installLoc.split('/');
+            const lastSegment = folderSegments[folderSegments.length - 1];
+            if(lastSegment != "Metafluence")
+            {
+                joinPath = "/Metafluence";
+            }
             if(versionType == "test")
             {
-                newPath = path.join(installLoc, "/Metafluence/TestVersion");
+                joinPath += "/TestVersion";
+                newPath = path.join(installLoc, joinPath);
             }
             else{
-                newPath = path.join(installLoc, "/Metafluence/PublicVersion");
+                joinPath += "/PublicVersion";
+                newPath = path.join(installLoc, joinPath);               
             }
             if(fs.existsSync(newPath))
             {
