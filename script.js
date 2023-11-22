@@ -12,9 +12,9 @@ $(document).ready(function () {
     }
   }
 
-  let link;
-  function goBtnClickHandler()
-  {
+  //click event handler for want-to-go button on each card
+  let link; //this is updated when event card is clicked (FetchEventData function)
+  function goBtnClickHandler() {
     window.open(link, '_blank');
     setTimeout(function () {
       for (let index = 0; index < modalContents.length; index++) {
@@ -26,6 +26,22 @@ $(document).ready(function () {
     }, 600);
   }
 
+  //Month Abbreviations for event card details
+  const months = {
+    Jan: 'January',
+    Feb: 'February',
+    Mar: 'March',
+    Apr: 'April',
+    May: 'May',
+    Jun: 'June',
+    Jul: 'July',
+    Aug: 'August',
+    Sep: 'September',
+    Oct: 'October',
+    Nov: 'November',
+    Dec: 'December'
+  };
+
   function FetchEventData(eventID) {
     var container = document.getElementsByClassName("event-modal_info");
     var url = "https://app.metafluence.com/api/v1/public/api/_web3/event/" + eventID;
@@ -34,13 +50,60 @@ $(document).ready(function () {
       .then(data => {
         let eventDetailsDiv = document.createElement('div');
         eventDetailsDiv.className = "event-modal_info";
-        eventDetailsDiv.innerHTML = `
+
+        const modalHeader = document.getElementsByClassName("modal-header-card");
+        modalHeader[0].style.backgroundImage = `url('${data.data.cover_image}')`;
+
+        if (data.data.status == "live") {
+          eventDetailsDiv.innerHTML = `
+          <img src="${data.data.cover_image}" alt="" class="event-modal_cover">
+                                  <h3 class="event-modal_name">${data.data.name}</h3>
+                                  <div class="event-modal_actions">
+                                      <span class="event-modal_author">by @${data.data.username}</span>
+                                      <div class="line-y"></div>
+                                      <span class="event-modal_status">${data.data.status.charAt(0).toUpperCase() + data.data.status.slice(1)}</span>
+                                  </div>
+                                  <p class="event-modal_text">
+                                      ${data.data.description}
+                                  </p>
+                                  <div class="event-modal_price">
+                                      <div class="event-modal_prize">
+                                          <img src="./assets/img/gift.svg" alt="">
+                                          <div class="event-modal_coin">
+                                              <img src="./assets/img/soto.svg" alt="">
+                                              <span>${data.data.reward_value}</span>
+                                          </div>
+                                      </div>
+                                      <div class="line-y"></div>
+                                      <div class="event-modal_ticket">
+                                          <img src="./assets/img/ticket.svg" alt="">
+                                          <div class="event-modal_coin">
+                                              <img src="./assets/img/soto.svg" alt="">
+                                              <span>${data.data.ticket_value}</span>
+                                          </div>
+                                      </div>
+                                  </div>`
+        }
+        else {
+
+          // Split the string into two parts: Month Day and Time
+          const [datePart, timePart] = data.data.start_date.split(' - ');
+
+          // Further split the date part to separate the month and day
+          const [monthAbbrev, day] = datePart.split(' ');
+
+          // Convert abbreviated month to full month name
+          const monthFull = months[monthAbbrev];
+
+          eventDetailsDiv.innerHTML = `
         <img src="${data.data.cover_image}" alt="" class="event-modal_cover">
                                 <h3 class="event-modal_name">${data.data.name}</h3>
                                 <div class="event-modal_actions">
                                     <span class="event-modal_author">by @${data.data.username}</span>
                                     <div class="line-y"></div>
-                                    <span class="event-modal_status">${data.data.status}</span>
+                                    <span class="event-modal_time">${monthFull} ${day.slice(0, -1)}</span>
+                                    <div class="line-y"></div>
+                                    <span class="event-modal_time">${timePart}</span>
                                 </div>
                                 <p class="event-modal_text">
                                     ${data.data.description}
@@ -62,6 +125,7 @@ $(document).ready(function () {
                                         </div>
                                     </div>
                                 </div>`
+        }
         while (container[0].firstChild) {
           container[0].removeChild(container[0].firstChild);
         }
@@ -70,7 +134,7 @@ $(document).ready(function () {
         //update want to go button
         let goBtn = document.getElementById("goBtn");
         link = 'https://app.metafluence.com/event/' + eventID;
-        goBtn.addEventListener("click", goBtnClickHandler, {once: true});
+        goBtn.addEventListener("click", goBtnClickHandler, { once: true });
 
         for (let index = 0; index < modalContents.length; index++) {
           if (modalContents[index].hasAttribute("data-active")) {
@@ -86,16 +150,29 @@ $(document).ready(function () {
   //Get eventCard data
   let eventContainer = document.getElementsByClassName("event-slider");
   function CreateEventCard(eventTitle, imageUrl, status, eventID) {
+    let drag = false; //variable that saves whether crad dragged or not (clicked)
     let eventCard = document.createElement('li');
+    const classStatus = (status == "remaining") ? "upcoming" : status;
+    const statusText = (status == "remaining") ? "upcoming" : status;
     eventCard.innerHTML = `
       <div class="tns-box">
-        <div class="event-status live"><span></span> ${status}</div>
+        <div class="event-status ${classStatus}"><span></span> ${statusText}</div>
         <img class="tns-lazy" src="${imageUrl}">
         <h3 class="event-name">${eventTitle}</h3>
       </div>
       `;
+      eventCard.addEventListener("mousedown", () => {
+        drag = false;
+      })
+      eventCard.addEventListener("mousemove", () => {
+        drag = true;
+      })
     eventCard.addEventListener("click", function () {
-      FetchEventData(eventID);
+      if(!drag)
+      {
+        FetchEventData(eventID);
+      }
+      drag = false;
     })
     eventContainer[0].appendChild(eventCard);
   }
@@ -123,7 +200,7 @@ $(document).ready(function () {
         // edgePadding: 50,
         // center: true,
         items: 1,
-        fixedWidth: 285,
+        fixedWidth: 200,
         nav: false,
         controlsContainer: "#custom_controlsContainer",
         prevButton: '#prev',
