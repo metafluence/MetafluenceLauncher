@@ -385,7 +385,7 @@ h1, h2, h3, h4, h5, h6, p {
 
 /*Event Slider*/
 .event-ttl {
-  margin-top: 43px;
+  margin-top: 5px;
   margin-left: 25px;
   padding: 1px 1px 4px;
   /* background: rgba(0, 0, 0, 0.75);
@@ -439,7 +439,7 @@ h1, h2, h3, h4, h5, h6, p {
 .tns-control {
   left: auto;
   right: 42px;
-  bottom: 50px;
+  bottom: 0px;
 }
 
 .event-status {
