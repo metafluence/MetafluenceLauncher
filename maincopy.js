@@ -714,7 +714,7 @@ app.whenReady().then(() => {
             directory = path.join(app.getPath("home"),"Library/Application Support/Epic/Metafluence/Saved");
         }
         if(process.platform == "win32") {
-            directory = path.join(app.getPath("appData"), "/Local/Metafluence/Saved");
+            directory = path.join(app.getPath("appData"), "../Local/Metafluence/Saved");
         }
         if(fs.existsSync(directory))
         {
