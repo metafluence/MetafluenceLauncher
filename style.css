@@ -865,7 +865,7 @@ h1, h2, h3, h4, h5, h6, p {
   opacity: .5;
 }
 .version-btn.btn {
-  background: linear-gradient(135deg, rgba(162, 122, 247, .5) 0%, rgba( 100, 229, 244, .5) 100%);
+  background: linear-gradient(135deg, rgba(162, 122, 247, .5) 0%, rgba(	100, 229, 244, .5) 100%);
   padding: 6px;
   border-radius: 30px;
   border: none;
@@ -935,7 +935,7 @@ h1, h2, h3, h4, h5, h6, p {
   width: calc(var(--progress-bar-width) - 4px);
   height: calc(var(--progress-bar-height) - 4px);
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(162, 122, 247, 1) 0%, rgba(  100, 229, 244, 1) 100%);
+  background: linear-gradient(135deg, rgba(162, 122, 247, 1) 0%, rgba(	100, 229, 244, 1) 100%);
 }
 
 .percentage {
@@ -1019,11 +1019,14 @@ h1, h2, h3, h4, h5, h6, p {
   display: flex;
   flex-direction: column;
   list-style: none;
-  row-gap: 24px;
+  row-gap: 5px;
 }
 .modal-nav li {
   text-align: center;
-  min-height: 50px;
+  /* min-height: 50px; */
+}
+.decorated {
+  padding-bottom: 19px;
 }
 .modal-btn.btn {
   background: linear-gradient(151deg, rgba(162, 122, 247, .5) 0%, rgba(149, 56, 191, .5) 100%);

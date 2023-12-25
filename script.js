@@ -3,11 +3,11 @@ $(document).ready(function () {
     const versionSpans = document.getElementsByClassName("version-current");
     if (option == "public") {
       for (let index = 0; index < versionSpans.length; index++) {
-        versionSpans[index].textContent = "Current version: public (" + vtxt + ")";
+        versionSpans[index].textContent = "Current version: stable (" + vtxt + ")";
       }
     } else {
       for (let index = 0; index < versionSpans.length; index++) {
-        versionSpans[index].textContent = "Current version: test (" + vtxt + ")";
+        versionSpans[index].textContent = "Current version: beta (" + vtxt + ")";
       }
     }
   }
@@ -239,20 +239,28 @@ $(document).ready(function () {
   });
 
   let versionText;
-
   let currentFunctionality = 0; //1-play, 2-update, 3-install
+
+  const clearCacheBtn = document.getElementById("clear-cache"); //to access clear cache button
+  let versionNote = document.getElementById("version-note"); //version information written at the bottom
+  const updatePanels = document.getElementsByClassName("update_panel"); //to access panels that holds settings, connection, and etc.
+  const navbarDropdown = document.getElementById("navbarDropdown"); //to access version selector dropdown
+  const settingsButton = document.getElementById("btn-settings"); //to access settings button
+  const uninstallBtn = document.getElementById("uninstall-app"); //to access uninstall button
+  const checkUpdateSettingsBtn = document.getElementById("update-check"); //to access check-update button
+  const eventCloseBtn = document.getElementById("event-close"); //to access close(x) button on event info page
 
   window.electronAPI.changeVersionText((event, vtxt, option) => {
     setVersionText(vtxt, option);
+    if(option == "test")
+    {
+      clearCacheBtn.disabled = true;
+    }
+    else
+    {
+      clearCacheBtn.disabled = false;
+    }
   })
-
-  let versionNote = document.getElementById("version-note");
-  const updatePanels = document.getElementsByClassName("update_panel");
-  const navbarDropdown = document.getElementById("navbarDropdown");
-  const settingsButton = document.getElementById("btn-settings");
-  const uninstallBtn = document.getElementById("uninstall-app");
-  const checkUpdateSettingsBtn = document.getElementById("update-check");
-  const eventCloseBtn = document.getElementById("event-close");
 
   eventCloseBtn.addEventListener("click", function () {
     goBtn.removeEventListener("click", goBtnClickHandler);
@@ -428,21 +436,21 @@ $(document).ready(function () {
     testLI = document.getElementById("test");
     publicLI = document.getElementById("public");
     vText = document.getElementsByClassName("dropdown-toggle");
-    vText[0].innerText = version[0].toUpperCase() + version.slice(1) + " version";
+    vText[0].innerText = (version == "public") ? ("Stable version") : ("Beta version");
     platformCopy = platform;
     if (platform === "win32") {
       fetch("http://128.140.45.21/Version.txt", { cache: "no-cache" })
         .then((response) => response.text())
         .then((data) => (versionText = data))
         .then(() => {
-          publicLI.innerText = "public version (v" + versionText + ")";
+          publicLI.innerText = "stable version (v" + versionText + ")";
         });
 
       fetch("http://94.130.76.49/Version.txt", { cache: "no-cache" })
         .then((response) => response.text())
         .then((data) => (versionText = data))
         .then(() => {
-          testLI.innerText = "test version (v" + versionText + ")";
+          testLI.innerText = "beta version (v" + versionText + ")";
         });
     }
     if (platform === "darwin") {
@@ -450,14 +458,14 @@ $(document).ready(function () {
         .then((response) => response.text())
         .then((data) => (versionText = data))
         .then(() => {
-          publicLI.innerText = "public version (v" + versionText + ")";
+          publicLI.innerText = "stable version (v" + versionText + ")";
         });
 
       fetch("http://94.130.76.49/Mac/Version.txt", { cache: "no-cache" })
         .then((response) => response.text())
         .then((data) => (versionText = data))
         .then(() => {
-          testLI.innerText = "test version (v" + versionText + ")";
+          testLI.innerText = "beta version (v" + versionText + ")";
         });
     }
   });
@@ -467,7 +475,7 @@ $(document).ready(function () {
   options.forEach((option) => {
     option.onclick = function () {
       if (option.dataset.value == "public") {
-        vText[0].innerText = "Public version";
+        vText[0].innerText = "Stable version";
         if (platformCopy === "win32") {
           fetch("http://128.140.45.21/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
@@ -487,7 +495,7 @@ $(document).ready(function () {
             });
         }
       } else {
-        vText[0].innerText = "Test version";
+        vText[0].innerText = "Beta version";
         if (platformCopy === "win32") {
           fetch("http://94.130.76.49/Version.txt", { cache: "no-cache" })
             .then((response) => response.text())
@@ -632,6 +640,12 @@ $(document).ready(function () {
 
   checkUpdateSettingsBtn.addEventListener("click", function () {
     window.electronAPI.checkUpdate(1);
+    settingsCloseBtn.click();
+  })
+
+  clearCacheBtn.addEventListener("click", function () {
+    window.electronAPI.clearCache();
+    clearCacheBtn.disabled = true;
     settingsCloseBtn.click();
   })
 

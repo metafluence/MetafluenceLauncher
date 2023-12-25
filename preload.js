@@ -26,5 +26,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     folderButtonPressed: (pressed) => ipcRenderer.send('f-button-press', pressed),
     connectionLost: (status) => ipcRenderer.on('lost-connection', status),   // status - 0 (not lost), 1 (lost)
     chooseInstallLoc: (loc) => ipcRenderer.on('choose-location', loc),
-    getAppVersion: (version) => ipcRenderer.on('get-app-version', version)
+    getAppVersion: (version) => ipcRenderer.on('get-app-version', version),
+    clearCache: () => ipcRenderer.send('clear-cache')
 })

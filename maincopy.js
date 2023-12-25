@@ -704,4 +704,28 @@ app.whenReady().then(() => {
         let downloadText = Math.round(progress.percent);
         mw.webContents.send("updated", downloadText);
     })
+
+    //clearing cache functionality (only for public version)
+    ipcMain.on('clear-cache', (event) => 
+    {
+        //implement functionality
+        let directory;
+        if(process.platform == "darwin") {
+            directory = path.join(app.getPath("home"),"Library/Application Support/Epic/Metafluence/Saved");
+        }
+        if(process.platform == "win32") {
+            directory = path.join(app.getPath("appData"), "/Local/Metafluence/Saved");
+        }
+        if(fs.existsSync(directory))
+        {
+            fs.rm(directory, {recursive: true},(err) => {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    console.log("Removed");
+                }
+            })
+        }
+    })
 })
