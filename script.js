@@ -54,6 +54,8 @@ $(document).ready(function () {
         const modalHeader = document.getElementsByClassName("modal-header-card");
         modalHeader[0].style.backgroundImage = `url('${data.data.cover_image}')`;
 
+        let ticketValue = (data.data.ticket_value == 0) ? "Free" : data.data.ticket_value.toString();
+
         if (data.data.status == "live") {
           eventDetailsDiv.innerHTML = `
           <img src="${data.data.cover_image}" alt="" class="event-modal_cover">
@@ -79,7 +81,7 @@ $(document).ready(function () {
                                           <img src="./assets/img/ticket.svg" alt="">
                                           <div class="event-modal_coin">
                                               <img src="./assets/img/soto.svg" alt="">
-                                              <span>${data.data.ticket_value}</span>
+                                              <span>${ticketValue}</span>
                                           </div>
                                       </div>
                                   </div>`
@@ -121,7 +123,7 @@ $(document).ready(function () {
                                         <img src="./assets/img/ticket.svg" alt="">
                                         <div class="event-modal_coin">
                                             <img src="./assets/img/soto.svg" alt="">
-                                            <span>${data.data.ticket_value}</span>
+                                            <span>${ticketValue}</span>
                                         </div>
                                     </div>
                                 </div>`
