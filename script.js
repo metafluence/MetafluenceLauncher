@@ -26,22 +26,6 @@ $(document).ready(function () {
     }, 600);
   }
 
-  //Month Abbreviations for event card details
-  const months = {
-    Jan: 'January',
-    Feb: 'February',
-    Mar: 'March',
-    Apr: 'April',
-    May: 'May',
-    Jun: 'June',
-    Jul: 'July',
-    Aug: 'August',
-    Sep: 'September',
-    Oct: 'October',
-    Nov: 'November',
-    Dec: 'December'
-  };
-
   function FetchEventData(eventID) {
     var container = document.getElementsByClassName("event-modal_info");
     var url = "https://app.metafluence.com/api/v1/public/api/_web3/event/" + eventID;
@@ -87,15 +71,19 @@ $(document).ready(function () {
                                   </div>`
         }
         else {
+          const utcDateString = data.data.start_date_ + " UTC";
+          const utcDate = new Date(utcDateString);
 
-          // Split the string into two parts: Month Day and Time
-          const [datePart, timePart] = data.data.start_date.split(' - ');
+          const localDate = utcDate.toLocaleString('en-US', {
+            month: 'long', // or 'short'
+            day: 'numeric',
+          })
 
-          // Further split the date part to separate the month and day
-          const [monthAbbrev, day] = datePart.split(' ');
-
-          // Convert abbreviated month to full month name
-          const monthFull = months[monthAbbrev];
+          const localTime = utcDate.toLocaleString('en-US', {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true, // Use 12-hour format
+          });
 
           eventDetailsDiv.innerHTML = `
         <img src="${data.data.cover_image}" alt="" class="event-modal_cover">
@@ -103,9 +91,9 @@ $(document).ready(function () {
                                 <div class="event-modal_actions">
                                     <span class="event-modal_author">by @${data.data.username}</span>
                                     <div class="line-y"></div>
-                                    <span class="event-modal_time">${monthFull} ${day.slice(0, -1)}</span>
+                                    <span class="event-modal_time">${localDate}</span>
                                     <div class="line-y"></div>
-                                    <span class="event-modal_time">${timePart}</span>
+                                    <span class="event-modal_time">${localTime}</span>
                                 </div>
                                 <p class="event-modal_text">
                                     ${data.data.description}
