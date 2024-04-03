@@ -4,6 +4,7 @@ const { autoUpdater } = require('electron-updater');
 const fs = require('fs');
 const { log } = require("console");
 const Store = require("electron-store");
+const https = require("https");
 const http = require("http");
 var DecompressZip = require("decompress-zip");
 var exec = require("child_process").spawn;
@@ -70,10 +71,21 @@ function downloadFile(webFile, filePath, savePath, stat, version) {
     const startTime = Date.now();
 
     try {
-        var req = http.get(webFile, function (response) {
+        var req = https.get(webFile, function (response) {
             var file = fs.createWriteStream(savePath);
             response.pipe(file);
             savePathCopy = savePath;
+
+            if(response.statusCode === 302 && response.headers.location)
+            {
+                downloadFile(response.headers.location, filePath, savePath, stat, version);
+                return;
+            }
+
+            if (response.statusCode !== 200) {
+                console.log(response.statusCode);
+                return;
+            }
     
             response.on('data', chunk => {
                 const elapsedTime = Date.now() - startTime;
@@ -511,21 +523,21 @@ app.whenReady().then(() => {
             if (versionType == "public") {
                 if(process.platform === "win32")
                 {
-                    downloadFile("http://128.140.45.21/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                    downloadFile("https://github.com/rzade/metafluenceversions/releases/download/stable/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
                 }
                 if(process.platform === "darwin")
                 {
-                    downloadFile("http://128.140.45.21/Mac/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
+                    downloadFile("https://github.com/rzade/metafluenceversions/releases/download/stablemac/Version.zip", filePath, path.join(store.get('downloadfilePublic'), "/Version.zip"), 1, "public");
                 }
             }
             else{
                 if(process.platform === "win32")
                 {
-                    downloadFile("http://94.130.76.49/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
+                    downloadFile("https://github.com/rzade/metafluenceversions/releases/download/beta/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
                 }
                 if(process.platform === "darwin")
                 {
-                    downloadFile("http://94.130.76.49/Mac/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
+                    downloadFile("https://github.com/rzade/metafluenceversions/releases/download/betamac/Version.zip", filePath, path.join(store.get('downloadfileTest'), "/Version.zip"), 1, "test");
                 }
             }
         }
@@ -639,21 +651,21 @@ app.whenReady().then(() => {
                     if (versionType == "public") {
                         if(process.platform === "win32")
                         {
-                            downloadFile("http://128.140.45.21/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                            downloadFile("https://github.com/rzade/metafluenceversions/releases/download/stable/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
                         }
                         if(process.platform === "darwin")
                         {
-                            downloadFile("http://128.140.45.21/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
+                            downloadFile("https://github.com/rzade/metafluenceversions/releases/download/stablemac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "public");
                         }
                     }
                     else{
                         if(process.platform === "win32")
                         {
-                            downloadFile("http://94.130.76.49/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
+                            downloadFile("https://github.com/rzade/metafluenceversions/releases/download/beta/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
                         }
                         if(process.platform === "darwin")
                         {
-                            downloadFile("http://94.130.76.49/Mac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
+                            downloadFile("https://github.com/rzade/metafluenceversions/releases/download/betamac/Version.zip", filePath, path.join(newPath, "/Version.zip"), 0, "test");
                         }
                     }
                 }
